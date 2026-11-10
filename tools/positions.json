@@ -132,10 +132,11 @@
   "area": "Παλαιό Φάληρο"
  },
  "23": {
-  "lat": 37.944693,
-  "lon": 23.672897,
-  "quality": "approx",
-  "area": "Μοσχάτο / Ταύρος"
+  "lat": 37.932397,
+  "lon": 23.69099,
+  "quality": "exact",
+  "area": "Παλαιό Φάληρο",
+  "note": "Λ. Ποσειδώνος × Ιωάννου Φιξ (OSM crossing); the table names the coastal road Εθν. Μακαρίου"
  },
  "24": {
   "lat": 37.9308,
@@ -144,10 +145,11 @@
   "area": "Παλαιό Φάληρο"
  },
  "25": {
-  "lat": 37.949603,
-  "lon": 23.691459,
+  "lat": 37.92927,
+  "lon": 23.709666,
   "quality": "exact",
-  "area": "Καλλιθέα"
+  "area": "Παλαιό Φάληρο",
+  "note": "Αχιλλέως × Ελ. Βενιζέλου in Παλαιό Φάληρο (OSM crossing); the table lists this row among the Π. Φάληρο junctions"
  },
  "26": {
   "lat": 37.914321,
@@ -276,10 +278,11 @@
   "area": "Άνω Λιόσια / Καματερό"
  },
  "47": {
-  "lat": 38.072705,
-  "lon": 23.594124,
-  "quality": "approx",
-  "area": "Ασπρόπυργος"
+  "lat": 38.062251,
+  "lon": 23.648182,
+  "quality": "exact",
+  "area": "Άνω Λιόσια",
+  "note": "ΝΑΤΟ × Μεγάλου Αλεξάνδρου (OSM crossing) in Άνω Λιόσια, as indicated by the author"
  },
  "48": {
   "lat": 38.052218,
@@ -288,10 +291,11 @@
   "area": "Αχαρνές"
  },
  "49": {
-  "lat": 38.024914,
-  "lon": 23.760493,
-  "quality": "approx",
-  "area": "Γαλάτσι"
+  "lat": 38.029001,
+  "lon": 23.764241,
+  "quality": "exact",
+  "area": "Γαλάτσι",
+  "note": "Βεΐκου × Αναγεννήσεως (OSM crossing), next to the Ομορφοκκλησιά church"
  },
  "50": {
   "lat": 38.018937,
@@ -350,16 +354,18 @@
   "area": "Άγιος Δημήτριος"
  },
  "59": {
-  "lat": 37.907339,
-  "lon": 23.894495,
-  "quality": "approx",
-  "area": "Κορωπί"
+  "lat": 37.903476,
+  "lon": 23.894979,
+  "quality": "exact",
+  "area": "Κορωπί",
+  "note": "Μαρκόπουλου × Κορωπί–Αεροδρόμιο (OSM crossing)"
  },
  "60": {
-  "lat": 37.907339,
-  "lon": 23.894495,
-  "quality": "approx",
-  "area": "Κορωπί"
+  "lat": 37.903476,
+  "lon": 23.894979,
+  "quality": "exact",
+  "area": "Κορωπί",
+  "note": "Μαρκόπουλου × Κορωπί–Αεροδρόμιο (OSM crossing)"
  },
  "61": {
   "lat": 38.008401,
@@ -398,16 +404,18 @@
   "area": "Χαϊδάρι"
  },
  "67": {
-  "lat": 38.012669,
-  "lon": 23.66118,
-  "quality": "approx",
-  "area": "Χαϊδάρι"
+  "lat": 38.006601,
+  "lon": 23.6743,
+  "quality": "exact",
+  "area": "Χαϊδάρι / Περιστέρι",
+  "note": "Λ. Αθηνών × Ηρακλείτου (OSM crossing) at the Χαϊδάρι / Περιστέρι boundary, as indicated by the author; the table spells the street Ηρακλέους"
  },
  "68": {
-  "lat": 38.013251,
-  "lon": 23.689423,
+  "lat": 38.027271,
+  "lon": 23.697803,
   "quality": "approx",
-  "area": "Αιγάλεω / Περιστέρι"
+  "area": "Ίλιον",
+  "note": "nearest point of Θηβών to the bus stop ΝΥΜΦΑΙΟΥ (230 m away); no street named Νυμφαίου meets Θηβών in OSM"
  },
  "69": {
   "lat": 38.074579,
@@ -418,14 +426,16 @@
  "70": {
   "lat": 38.064511,
   "lon": 23.637469,
-  "quality": "approx",
-  "area": "Ασπρόπυργος"
+  "quality": "exact",
+  "area": "Ασπρόπυργος",
+  "note": "signalised junction of ΝΑΤΟ with a tertiary road that is unnamed in OSM; the author confirms ΝΑΤΟ × Μεγαρίδος (Θέση Σκαλιστήρι) is here"
  },
  "71": {
-  "lat": 38.071207,
-  "lon": 23.603081,
-  "quality": "approx",
-  "area": "Ασπρόπυργος"
+  "lat": 38.075649,
+  "lon": 23.571097,
+  "quality": "exact",
+  "area": "Ασπρόπυργος",
+  "note": "ΝΑΤΟ × Τραπεζούντος (OSM crossing) in Ασπρόπυργος"
  },
  "72": {
   "lat": 37.990754,
@@ -506,10 +516,11 @@
   "area": "Πειραιάς"
  },
  "85": {
-  "lat": 37.956937,
-  "lon": 23.680482,
+  "lat": 37.965558,
+  "lon": 23.694375,
   "quality": "exact",
-  "area": "Μοσχάτο / Ταύρος"
+  "area": "Ταύρος",
+  "note": "Πειραιώς × Χρυσοστόμου Σμύρνης in Ταύρος (OSM crossing), as confirmed by the author; a same-named crossing exists in Μοσχάτο"
  },
  "86": {
   "lat": 37.954798,
@@ -554,10 +565,11 @@
   "area": "Νίκαια"
  },
  "93": {
-  "lat": 37.964396,
-  "lon": 23.622436,
+  "lat": 37.961852,
+  "lon": 23.61147,
   "quality": "approx",
-  "area": "Κερατσίνι / Δραπετσώνα"
+  "area": "Κερατσίνι / Δραπετσώνα",
+  "note": "where Γρ. Λαμπράκη meets Δημοκρατίας; Σαλαμίνος ends 190 m north at the same avenue and does not touch Δημοκρατίας in OSM"
  },
  "94": {
   "lat": 37.964184,
