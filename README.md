@@ -27,7 +27,7 @@ Only `index.html` and `data.js` are needed to publish it.
 ## SEO and social preview
 
 The site address is written into `index.html` (canonical, Open Graph and JSON-LD tags), `robots.txt` and
-`sitemap.xml` as `https://traffic-cameras-attica.vercel.app`; replace it everywhere if the site is served
+`sitemap.xml` as `https://traffic-cameras-attica.site`; replace it everywhere if the site is served
 from another domain. The preview card `og.png` and the PNG icons are drawn from `tools/og.html` and
 `favicon.svg` with `node tools/render_og.cjs` (needs Playwright); re-run it after the data changes.
 

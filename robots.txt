@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://traffic-cameras-attica.vercel.app/sitemap.xml
+Sitemap: https://traffic-cameras-attica.site/sitemap.xml
