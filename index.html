@@ -53,6 +53,14 @@
   input[type=search], select { width: 100%; padding: 7px 9px; border: 1px solid var(--rule); border-radius: 0; font: 13px "IBM Plex Mono", monospace; background: var(--bg); color: var(--ink); }
   input::placeholder { color: var(--muted); }
   input:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .searchrow { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+  #fToggle { white-space: nowrap; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; }
+  #fToggle svg { width: 12px; height: 12px; }
+  #fToggle.active { color: var(--ink); border-color: var(--ink); }
+  #fToggle b { font-weight: 600; background: var(--ink); color: var(--bg); padding: 0 5px; }
+  #fPanel { display: grid; gap: 8px; }
+  #fPanel[hidden] { display: none; }
+  #fReset { justify-self: start; font: 11px "IBM Plex Mono", monospace; color: var(--muted); }
   .chips { display: flex; gap: 6px; flex-wrap: wrap; }
   .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule); background: var(--bg); color: var(--muted); border-radius: 0; padding: 4px 9px; font: 11.5px "IBM Plex Mono", monospace; cursor: pointer; }
   .chip i { width: 9px; height: 9px; border-radius: 50%; border: 1.6px solid; background: none !important; }
@@ -209,12 +217,18 @@
       </div>
     </header>
     <div class="filters">
-      <input type="search" id="q" autocomplete="off">
-      <div class="chips layers" id="layers"></div>
-      <div class="chips" id="chips"></div>
-      <div class="row2">
-        <select id="area"></select>
-        <select id="sort"></select>
+      <div class="searchrow">
+        <input type="search" id="q" autocomplete="off">
+        <button class="btn" id="fToggle" aria-expanded="false" aria-controls="fPanel"></button>
+      </div>
+      <div id="fPanel" hidden>
+        <div class="chips layers" id="layers"></div>
+        <div class="chips" id="chips"></div>
+        <div class="row2">
+          <select id="area"></select>
+          <select id="sort"></select>
+        </div>
+        <button class="link" id="fReset" data-t="fReset"></button>
       </div>
     </div>
     <div class="cap"><span data-t="colNode"></span><span data-t="colPlace"></span><span data-t="colCams"></span></div>
@@ -266,6 +280,7 @@
 const T = {
   el: { eyebrow: "Ανοιχτά δεδομένα · Αττική · Νοέμβριος 2026", thLight: "Φωτεινό θέμα", thDark: "Σκοτεινό θέμα", thAuto: "Αυτόματο (ακολουθεί τη συσκευή)", thLabel: "Εμφάνιση", title: "Κάμερες ερυθρού σηματοδότη και Τεχνητής Νοημοσύνης", junctions: "σημεία", cameras: "κάμερες ερυθρού", areas: "περιοχές",
         colNode: "Κόμβος", colPlace: "Θέση", colCams: "Καμ.", tbArea: "Περιοχή", tbAreaV: "Αττική", tbCams: "Κάμερες", tbDate: "Ενημέρωση", tbDateV: "Νοέμβριος 2026", tbScale: "Κλίμακα", aiUnit: "ΤΝ",
+        filters: "Φίλτρα", fReset: "Καθαρισμός φίλτρων",
         fbLink: "Σχόλια", fbTitleGen: "Σχόλια για τον χάρτη", fbTitlePoint: "Αναφορά λάθους", fbMsgGen: "Τι θα θέλατε να μας πείτε;", fbMsgPoint: "Προαιρετικά: τι ακριβώς είναι λάθος;",
         fbFor: "Αφορά", report: "Αναφορά λάθους", isPosition: "Η θέση είναι λάθος", isMissing: "Δεν υπάρχει κάμερα εδώ", isDetails: "Λάθος στοιχεία (αριθμός, κατεύθυνση)", isOther: "Κάτι άλλο",
         pickBtn: "Υποδείξτε τη σωστή θέση στον χάρτη", pickAgain: "Αλλαγή θέσης", pickHint: "Πατήστε στον χάρτη στη σωστή θέση", picked: "Προτεινόμενη θέση", cancel: "Άκυρο", send: "Αποστολή",
@@ -291,6 +306,7 @@ const T = {
         dirs: ["Β", "ΒΑ", "Α", "ΝΑ", "Ν", "ΝΔ", "Δ", "ΒΔ"] },
   en: { eyebrow: "Open data · Attica · November 2026", thLight: "Light theme", thDark: "Dark theme", thAuto: "Automatic (follows the device)", thLabel: "Appearance", title: "Red-light and AI cameras", junctions: "locations", cameras: "red-light cameras", areas: "areas",
         colNode: "Node", colPlace: "Location", colCams: "Cam.", tbArea: "Area", tbAreaV: "Attica", tbCams: "Cameras", tbDate: "Updated", tbDateV: "November 2026", tbScale: "Scale", aiUnit: "AI",
+        filters: "Filters", fReset: "Clear filters",
         fbLink: "Feedback", fbTitleGen: "Feedback on the map", fbTitlePoint: "Report an error", fbMsgGen: "What would you like to tell us?", fbMsgPoint: "Optional: what exactly is wrong?",
         fbFor: "About", report: "Report an error", isPosition: "The position is wrong", isMissing: "There is no camera here", isDetails: "Wrong details (count, direction)", isOther: "Something else",
         pickBtn: "Show the correct position on the map", pickAgain: "Change position", pickHint: "Tap the map at the correct position", picked: "Suggested position", cancel: "Cancel", send: "Send",
@@ -721,8 +737,25 @@ $("list").addEventListener("click", e => {
   map.flyTo({ center: [j.lon, j.lat], zoom: j.cams.length ? 17.6 : 16, pitch: isPhone() ? 0 : 40, speed: 1.6 });
   if (!j.cams.length) map.once("moveend", () => j.ai ? openAi(j) : openJunction(j));
 });
+// ---- filters live behind a toggle so the list gets the room; the button shows how many are in effect
+const FILTER_ICON = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M4.5 8h7M7 12h2"/></svg>';
+function filterCount() {
+  return Object.values(layersOn).filter(v => !v).length + (layersOn.red ? Object.values(active).filter(v => !v).length : 0) + ($("area").value ? 1 : 0);
+}
+function syncFilterButton() {
+  const n = filterCount(), open = !$("fPanel").hidden;
+  $("fToggle").innerHTML = `${FILTER_ICON}${t("filters")}${n ? ` <b>${n}</b>` : ""}`;
+  $("fToggle").classList.toggle("active", n > 0 || open);
+  $("fToggle").setAttribute("aria-expanded", open);
+  $("fReset").style.display = n ? "" : "none";
+}
+$("fToggle").addEventListener("click", () => { $("fPanel").hidden = !$("fPanel").hidden; syncFilterButton(); syncSheet(); });
+$("fReset").addEventListener("click", () => {
+  Object.keys(layersOn).forEach(k => layersOn[k] = true); Object.keys(active).forEach(k => active[k] = true);
+  $("area").value = ""; applyLang(); render(true);
+});
 $("q").addEventListener("input", () => render(true));
-$("area").addEventListener("change", () => render(true));
+$("area").addEventListener("change", () => { syncFilterButton(); render(true); });
 $("sort").addEventListener("change", () => render(false));
 $("aboutBtn").addEventListener("click", () => $("about").showModal());
 $("aboutClose").addEventListener("click", () => $("about").close());
@@ -783,6 +816,7 @@ function applyLang() {
   $("chips").style.display = layersOn.red ? "" : "none";
   $("chips").innerHTML = ["all", "both", "one"].map(k =>
     `<button class="chip${active[k] ? " on" : ""}" data-k="${k}" aria-pressed="${active[k]}"><i style="color:${COL[k]}"></i>${t(k)}</button>`).join("");
+  syncFilterButton();
   if (popup) popup.remove();
   if (map && map.getSource("junctions")) render(false);
 }
