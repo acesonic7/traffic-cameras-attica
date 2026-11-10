@@ -3,7 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Κάμερες οδικής κυκλοφορίας Αττικής</title>
+<title>Κάμερες ερυθρού σηματοδότη και Τεχνητής Νοημοσύνης · Αττική</title>
+<meta name="description" content="Ανοιχτός χάρτης με τις κάμερες παραβίασης ερυθρού σηματοδότη και τις κάμερες Τεχνητής Νοημοσύνης στην Αττική: 388 κάμερες σε 96 διασταυρώσεις, με θέση και κατεύθυνση κάθε κάμερας.">
+<link rel="canonical" href="https://traffic-cameras-attica.vercel.app/">
+<link rel="alternate" hreflang="el" href="https://traffic-cameras-attica.vercel.app/">
+<link rel="alternate" hreflang="en" href="https://traffic-cameras-attica.vercel.app/?lang=en">
+<link rel="alternate" hreflang="x-default" href="https://traffic-cameras-attica.vercel.app/">
+<meta name="theme-color" content="#0b1220">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Κάμερες οδικής κυκλοφορίας Αττικής">
+<meta property="og:title" content="Κάμερες ερυθρού σηματοδότη και Τεχνητής Νοημοσύνης · Αττική">
+<meta property="og:description" content="Ανοιχτός χάρτης με τις κάμερες παραβίασης ερυθρού σηματοδότη και τις κάμερες Τεχνητής Νοημοσύνης στην Αττική: 388 κάμερες σε 96 διασταυρώσεις, με θέση και κατεύθυνση κάθε κάμερας.">
+<meta property="og:url" content="https://traffic-cameras-attica.vercel.app/">
+<meta property="og:locale" content="el_GR">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:image" content="https://traffic-cameras-attica.vercel.app/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Χάρτης με τις θέσεις των καμερών ερυθρού σηματοδότη και Τεχνητής Νοημοσύνης στην Αττική">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Κάμερες ερυθρού σηματοδότη και Τεχνητής Νοημοσύνης · Αττική">
+<meta name="twitter:description" content="Ανοιχτός χάρτης με τις κάμερες παραβίασης ερυθρού σηματοδότη και τις κάμερες Τεχνητής Νοημοσύνης στην Αττική: 388 κάμερες σε 96 διασταυρώσεις, με θέση και κατεύθυνση κάθε κάμερας.">
+<meta name="twitter:image" content="https://traffic-cameras-attica.vercel.app/og.png">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebSite", "@id": "https://traffic-cameras-attica.vercel.app/#site", "url": "https://traffic-cameras-attica.vercel.app/", "name": "Κάμερες ερυθρού σηματοδότη και Τεχνητής Νοημοσύνης · Αττική", "alternateName": "Red-light and AI cameras · Attica", "description": "Ανοιχτός χάρτης με τις κάμερες παραβίασης ερυθρού σηματοδότη και τις κάμερες Τεχνητής Νοημοσύνης στην Αττική: 388 κάμερες σε 96 διασταυρώσεις, με θέση και κατεύθυνση κάθε κάμερας.", "inLanguage": ["el", "en"]}, {"@type": "Dataset", "@id": "https://traffic-cameras-attica.vercel.app/#dataset", "name": "Κάμερες οδικής κυκλοφορίας Αττικής / Traffic enforcement cameras in Attica", "description": "Open map of red-light and AI traffic enforcement cameras in Attica, Greece: 388 cameras at 96 junctions, with the position and heading of each camera.", "url": "https://traffic-cameras-attica.vercel.app/", "inLanguage": ["el", "en"], "isAccessibleForFree": true, "license": "https://opendatacommons.org/licenses/odbl/1-0/", "keywords": ["κάμερες ερυθρού σηματοδότη", "κάμερες τεχνητής νοημοσύνης", "Αττική", "red-light cameras", "AI traffic cameras", "Attica", "Athens"], "spatialCoverage": {"@type": "Place", "name": "Attica, Greece", "geo": {"@type": "GeoShape", "box": "37.80 23.50 38.20 24.05"}}, "distribution": [{"@type": "DataDownload", "encodingFormat": "text/csv", "contentUrl": "https://traffic-cameras-attica.vercel.app/cameras.csv"}], "isBasedOn": "https://www.hellenicparliament.gr/UserFiles/67715b2c-ec81-4f0c-ad6a-476a34d732bd/12807132.pdf"}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
@@ -196,13 +222,14 @@
 </style>
 </head>
 <body>
+<noscript><p style="padding:20px">Ανοιχτός χάρτης με τις κάμερες παραβίασης ερυθρού σηματοδότη και τις κάμερες Τεχνητής Νοημοσύνης στην Αττική: 388 κάμερες σε 96 διασταυρώσεις, με θέση και κατεύθυνση κάθε κάμερας. / Open map of red-light and AI traffic enforcement cameras in Attica, Greece: 388 cameras at 96 junctions, with the position and heading of each camera.</p></noscript>
 <div id="app">
   <aside id="side">
     <header id="head">
       <div class="grab"></div>
       <div class="eyebrow"><span class="lights"><i style="background:var(--all)"></i><i style="background:var(--both)"></i><i style="background:var(--one)"></i></span><span data-t="eyebrow"></span></div>
       <div class="titlerow">
-        <h1 data-t="title"></h1>
+        <h1 data-t="title">Κάμερες ερυθρού σηματοδότη και Τεχνητής Νοημοσύνης</h1>
         <button class="btn" id="toggle" aria-label="Toggle list" aria-expanded="true">▾</button>
       </div>
       <div class="titlerow">
@@ -333,6 +360,7 @@ const T = {
 };
 let lang = "el";
 try { lang = localStorage.getItem("lang") || "el"; } catch (e) {}
+{ const q = new URLSearchParams(location.search).get("lang"); if (q === "el" || q === "en") lang = q; }  // ?lang=en links open in English
 const t = k => T[lang][k];
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
