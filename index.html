@@ -126,25 +126,42 @@
   dialog#about li { margin-bottom: 4px; }
   dialog#about .x { position: absolute; top: 14px; right: 14px; }
   #toggle { display: none; }
+  .grab { display: none; }
   @media (max-width: 760px) {
-    #app { inset: 0; border: 0; grid-template-columns: 1fr; }
-    #side { position: absolute; inset: auto 0 0 0; max-height: 62%; border-right: 0; border-top: 1.5px solid var(--rule); }
-    #side.collapsed #list, #side.collapsed .cap, #side.collapsed .filters, #side.collapsed footer, #side.collapsed .stats, #side.collapsed .eyebrow { display: none; }
-    #toggle { display: block; }
-    header { padding: 10px 12px; }
+    /* phone: the map fills the screen and the schedule becomes a bottom sheet that opens and closes */
+    #app { inset: 0; border: 0; display: block; }
+    #mapwrap { position: absolute; inset: 0; }
+    #side { position: absolute; inset: auto 0 0 0; max-height: 74dvh; border-right: 0; border-top: 1.5px solid var(--rule); z-index: 4; box-shadow: 0 -6px 18px var(--shadow); }
+    header { padding: 0 12px 10px; cursor: pointer; }
+    .grab { display: block; width: 44px; height: 4px; background: var(--rule); margin: 7px auto 8px; }
+    h1 { font-size: 13px; }
+    .titlerow { margin-top: 0; align-items: center; }
+    .titlerow + .titlerow { margin-top: 10px; }
+    #toggle { display: block; min-width: 40px; min-height: 36px; font-size: 14px; }
+    .stats { margin-top: 8px; }
+    .stat { padding: 4px 8px 5px; }
+    .stat b { font-size: 15px; }
+    .item { padding: 10px 12px; }
+    .filters, .cap, footer { padding-left: 12px; padding-right: 12px; }
+    .seg button, #lang { padding: 7px 10px; }
+    input[type=search], select { font: 16px "IBM Plex Sans", sans-serif; padding: 8px 9px; }   /* 16px stops iOS zooming the page on focus */
+    #side.collapsed #list, #side.collapsed .cap, #side.collapsed .filters, #side.collapsed footer, #side.collapsed .eyebrow, #side.collapsed .titlerow + .titlerow { display: none; }
     #tblock, .hint, #grid { display: none; }
-    .maplibregl-ctrl-bottom-right { bottom: 0; }
+    .maplibregl-ctrl-bottom-right { bottom: var(--sheet, 0px); }
+    .maplibregl-popup { max-width: calc(100vw - 28px) !important; }
+    dialog#about { padding: 20px 18px 16px; max-height: calc(100dvh - 24px); }
   }
 </style>
 </head>
 <body>
 <div id="app">
   <aside id="side">
-    <header>
+    <header id="head">
+      <div class="grab"></div>
       <div class="eyebrow"><span class="lights"><i style="background:var(--all)"></i><i style="background:var(--both)"></i><i style="background:var(--one)"></i></span><span data-t="eyebrow"></span></div>
       <div class="titlerow">
         <h1 data-t="title"></h1>
-        <button class="btn" id="toggle" aria-label="Toggle list">☰</button>
+        <button class="btn" id="toggle" aria-label="Toggle list" aria-expanded="true">▾</button>
       </div>
       <div class="titlerow">
         <div class="seg" id="theme" role="group"></div>
@@ -333,6 +350,7 @@ const coneGeo = rows => ({ type: "FeatureCollection", features: rows.flatMap(j =
 
 // our own sources and layers; added after every style load, so a theme change redraws them in the new colours
 function addOverlays() {
+  if (map.getLayer("bld3d")) return;   // already drawn for this style (a theme change can race the first load)
   const c = MAPC, kindColor = ["match", ["get", "kind"], "all", COL.all, "both", COL.both, "one", COL.one, COL.approx];
   const vsrc = Object.keys(map.getStyle().sources).find(k => map.getStyle().sources[k].type === "vector");
   map.addLayer({ id: "bld3d", type: "fill-extrusion", source: vsrc, "source-layer": "building", minzoom: 15,
@@ -383,8 +401,11 @@ async function init() {
   map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
   map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
   popup = new maplibregl.Popup({ maxWidth: "330px", offset: 14 });
+  // phone: a popup is nearly as wide as the screen, so open it upwards and slide the point to where it fits
+  popup.on("open", () => { if (isPhone()) map.easeTo({ center: popup.getLngLat(), offset: [0, 110], duration: 350 }); });
   await new Promise(r => map.on("load", r));
   addOverlays();
+  syncSheet();
 
   ["j-dot", "cam-dot", "cone-fill", "ai-dot"].forEach(id => {
     map.on("mouseenter", id, () => map.getCanvas().style.cursor = "pointer");
@@ -440,6 +461,7 @@ function selectCam(c) {
 const tag = j => `<div class="tag" style="color:${COL[j.kind]}"><i style="background:${COL[j.kind]}"></i>${t(j.kind === "approx" ? j.coverage : j.kind)}</div>`;
 function openJunction(j) {
   setActive(j);
+  popup.options.anchor = isPhone() ? "bottom" : undefined;
   const flows = j.flows.length > 1 ? "<ul>" + j.flows.map(f => `<li>${esc(f.direction)} (${f.cameras})</li>`).join("") + "</ul>" : esc(j.flows[0].direction);
   const ll = j.lat + "," + j.lon;
   popup.setLngLat([j.lon, j.lat]).setHTML(`<div class="pop">${tag(j)}<h3>${esc(j.location)}</h3><table>
@@ -454,6 +476,7 @@ function openJunction(j) {
 }
 function openAi(a) {
   setActive(a);
+  popup.options.anchor = isPhone() ? "bottom" : undefined;
   popup.setLngLat([a.lon, a.lat]).setHTML(`<div class="pop"><div class="tag" style="color:${COL.ai}"><i style="background:${COL.ai}"></i>${t("aiPilot")}</div>
     <h3>${esc(a.location)}</h3><table>
     <tr><td>${t("type")}</td><td>${t("aiName")}<div class="sub">${t("aiOwner")}</div></td></tr>
@@ -464,6 +487,7 @@ function openAi(a) {
 }
 function openCamera(c) {
   const j = c.j;
+  popup.options.anchor = isPhone() ? "bottom" : undefined;
   setActive(j); selectCam(c);
   popup.setLngLat([c.lon, c.lat]).setHTML(`<div class="pop">${tag(j)}<h3>${t("camera")} ${c.i + 1} ${t("of")} ${j.cams.length} · ${esc(j.location)}</h3><table>
     <tr><td>${t("onRoad")}</td><td>${esc(c.road || t("unnamed"))}</td></tr>
@@ -532,16 +556,16 @@ function render(fit) {
   if (fit && rows.length + ai.length) {
     const b = new maplibregl.LngLatBounds();
     [...rows, ...ai].forEach(j => b.extend([j.lon, j.lat]));
-    map.fitBounds(b, { padding: 70, maxZoom: 16.5, pitch: 0, bearing: 0, duration: 700 });
+    map.fitBounds(b, { padding: isPhone() ? 28 : 70, maxZoom: 16.5, pitch: 0, bearing: 0, duration: 700 });
   }
 }
 $("list").addEventListener("click", e => {
   const el = e.target.closest(".item"); if (!el) return;
   const j = findRow(el.dataset.id);
   popup.remove(); setActive(j);
-  map.flyTo({ center: [j.lon, j.lat], zoom: j.cams.length ? 17.6 : 16, pitch: 40, speed: 1.6 });
+  if (isPhone()) setSheet(false);   // close the sheet first so the junction lands in the visible part of the map
+  map.flyTo({ center: [j.lon, j.lat], zoom: j.cams.length ? 17.6 : 16, pitch: isPhone() ? 0 : 40, speed: 1.6 });
   if (!j.cams.length) map.once("moveend", () => j.ai ? openAi(j) : openJunction(j));
-  if (window.innerWidth <= 760) $("side").classList.add("collapsed");
 });
 $("q").addEventListener("input", () => render(true));
 $("area").addEventListener("change", () => render(true));
@@ -549,7 +573,29 @@ $("sort").addEventListener("change", () => render(false));
 $("aboutBtn").addEventListener("click", () => $("about").showModal());
 $("aboutClose").addEventListener("click", () => $("about").close());
 $("about").addEventListener("click", e => { if (e.target === $("about")) $("about").close(); });
-$("toggle").addEventListener("click", () => $("side").classList.toggle("collapsed"));
+// ---- phone: bottom sheet. The map is told how much of the screen the sheet covers, so fits and fly-tos stay in view
+const isPhone = () => window.innerWidth <= 760;
+function syncSheet() {
+  const h = isPhone() ? $("side").offsetHeight : 0;
+  document.documentElement.style.setProperty("--sheet", h + "px");
+  if (map) map.setPadding({ top: 0, left: 0, right: 0, bottom: h });
+}
+function setSheet(open) {
+  $("side").classList.toggle("collapsed", !open);
+  $("toggle").textContent = open ? "▾" : "▴";
+  $("toggle").setAttribute("aria-expanded", open);
+  syncSheet();
+}
+$("head").addEventListener("click", e => {
+  if (!isPhone() || e.target.closest("#theme, #lang")) return;
+  setSheet($("side").classList.contains("collapsed"));
+});
+let wasPhone = isPhone();
+window.addEventListener("resize", () => {
+  if (isPhone() !== wasPhone) { wasPhone = isPhone(); setSheet(!wasPhone); }
+  syncSheet();
+});
+if (isPhone()) setSheet(false);
 $("chips").addEventListener("click", e => {
   const c = e.target.closest(".chip"); if (!c) return;
   active[c.dataset.k] = !active[c.dataset.k]; applyLang();
