@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Πρωτότυπο Α · Μινιμαλιστικό</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+  :root { --paper: #fffff8; --ink: #111; --soft: #6b6b63; --rule: #d9d8cc; --red: #a4161a; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--paper); color: var(--ink); font: 17px/1.45 "EB Garamond", Georgia, serif; }
+  #app { display: grid; grid-template-columns: minmax(340px, 30%) 1fr; height: 100%; }
+  #text { padding: 34px 30px 0 38px; display: flex; flex-direction: column; min-height: 0; }
+  h1 { font-weight: 400; font-size: 31px; line-height: 1.12; margin: 0 0 14px; }
+  h1 em { color: var(--soft); }
+  p { margin: 0 0 12px; }
+  .num { font-variant-numeric: oldstyle-nums; }
+  .sc { font-variant-caps: all-small-caps; letter-spacing: .06em; color: var(--soft); }
+  .ai { color: var(--red); }
+  .keyline { display: flex; gap: 18px; align-items: center; font-size: 14px; color: var(--soft); margin: 2px 0 14px; }
+  .keyline svg { vertical-align: -3px; margin-right: 4px; }
+  #table { overflow-y: auto; flex: 1; min-height: 0; border-top: 1px solid var(--ink); margin-right: -30px; padding-right: 30px; scrollbar-width: thin; }
+  .r { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: baseline; padding: 3px 0; border-bottom: 1px solid var(--rule); cursor: pointer; background: none; border-left: 0; border-right: 0; border-top: 0; width: 100%; text-align: left; font: inherit; font-size: 15px; color: inherit; }
+  .r:hover .nm { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .r .area { color: var(--soft); font-style: italic; font-size: 14px; }
+  .r .dots { letter-spacing: 1px; font-size: 9px; white-space: nowrap; line-height: 1; }
+  .r .dots b { font: 400 14px "EB Garamond", serif; letter-spacing: 0; margin-left: 6px; font-variant-numeric: oldstyle-nums; }
+  .grp { font-variant-caps: all-small-caps; letter-spacing: .08em; color: var(--soft); font-size: 14px; padding: 12px 0 3px; border-bottom: 1px solid var(--ink); position: sticky; top: 0; background: var(--paper); }
+  footer { font-size: 13.5px; color: var(--soft); padding: 10px 0 14px; font-style: italic; }
+  #map { height: 100%; }
+  .maplibregl-popup-content { background: var(--paper); border-radius: 0; box-shadow: none; border: 1px solid var(--ink); padding: 10px 14px; font: 15px/1.35 "EB Garamond", serif; max-width: 280px; }
+  .maplibregl-popup-tip { display: none; }
+  .pop .k { font-variant-caps: all-small-caps; letter-spacing: .06em; color: var(--soft); font-size: 13px; }
+  .pop h3 { font-weight: 500; font-size: 18px; margin: 2px 0 4px; }
+  .pop .flows { color: var(--soft); font-style: italic; }
+  .maplibregl-ctrl-group { border-radius: 0; box-shadow: none; border: 1px solid var(--ink); background: var(--paper); }
+  .maplibregl-ctrl-attrib { background: transparent !important; font: 11px "EB Garamond", serif; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="text">
+    <h1>Κάμερες στους δρόμους της Αττικής <em>— πού βρίσκονται</em></h1>
+    <p><span class="num" id="tot"></span> κάμερες παραβίασης ερυθρού σηματοδότη της Περιφέρειας Αττικής σε <span class="num" id="nj"></span> κόμβους, και <span class="ai">οκτώ σημεία με κάμερες Τεχνητής Νοημοσύνης</span> του Υπουργείου Ψηφιακής Διακυβέρνησης. Το εμβαδόν κάθε κύκλου είναι ανάλογο με τον αριθμό των καμερών.</p>
+    <div class="keyline">
+      <span><svg width="46" height="18"><circle cx="5" cy="9" r="3" fill="#111"/><circle cx="18" cy="9" r="5.2" fill="#111"/><circle cx="36" cy="9" r="8.5" fill="#111"/></svg>1 · 3 · 8 κάμερες</span>
+      <span class="ai"><svg width="12" height="12"><rect x="2" y="2" width="8" height="8" fill="none" stroke="#a4161a" stroke-width="1.6" transform="rotate(45 6 6)"/></svg>Τεχνητή Νοημοσύνη</span>
+    </div>
+    <div id="table"></div>
+    <footer>Θέσεις από το OpenStreetMap· οι θέσεις των επιμέρους καμερών είναι εκτιμήσεις.</footer>
+  </div>
+  <div id="map"></div>
+</div>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="../data.js"></script>
+<script src="common.js"></script>
+<script>
+document.getElementById("tot").textContent = TOTAL;
+document.getElementById("nj").textContent = JUNCTIONS.length;
+// the table: one row per junction, cameras drawn as a row of dots (a unit chart), largest first
+const order = ["all", "both", "one"];
+document.getElementById("table").innerHTML = order.map(k => {
+  const rows = JUNCTIONS.filter(j => j.coverage === k).sort((a, b) => b.cameras - a.cameras);
+  return `<div class="grp">${COVER[k]} · ${rows.reduce((s, j) => s + j.cameras, 0)} κάμερες</div>` + rows.map(j =>
+    `<button class="r" data-id="${j.id}"><span><span class="nm">${esc(j.location)}</span> <span class="area">${esc(j.area)}</span></span>
+     <span class="dots">${"●".repeat(j.cameras)}<b>${j.cameras}</b></span></button>`).join("");
+}).join("");
+
+(async () => {
+  const ink = "#111";
+  const style = await themedStyle("positron", {
+    land: "#fffff8", land2: "#fffff8", water: "#e9ecea", green: "#fffff8", building: "#f3f2e8",
+    casing: "#fffff8", motorway: "#a9a89c", major: "#c9c8bc", minor: "#e6e5d9", rail: "#e6e5d9", boundary: "#fffff8",
+    label: "#9a998d", place: "#55554d", halo: "#fffff8", font: "Noto Sans Italic"
+  }, [/shield/, /airport/, /aeroway/, /pier/, /building/, /label_other/, /highway-name-(minor|path)/]);
+  const map = await makeMap(style);
+  const popup = new maplibregl.Popup({ offset: 10, closeButton: false });
+  // area-proportional dots; they thin out to a hairline ring once the individual cameras appear
+  const r = k => ["*", k, ["sqrt", ["get", "n"]]];
+  const fade = ["interpolate", ["linear"], ["zoom"], 15, .88, 15.8, ["case", ["get", "has"], 0, .88]];
+  map.addLayer({ id: "cone", type: "fill", source: "cones", minzoom: 15, paint: { "fill-color": ink, "fill-opacity": .1 } });
+  map.addLayer({ id: "cone-l", type: "line", source: "cones", minzoom: 15, paint: { "line-color": ink, "line-width": .6 } });
+  map.addLayer({ id: "cam", type: "circle", source: "cams", minzoom: 15, paint: { "circle-radius": 3.2, "circle-color": ink } });
+  map.addLayer({ id: "j", type: "circle", source: "junctions", paint: {
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, r(2.1), 13, r(4.2)],
+    "circle-color": ["case", ["get", "approx"], "rgba(0,0,0,0)", ink], "circle-opacity": fade,
+    "circle-stroke-color": ink, "circle-stroke-width": ["case", ["get", "approx"], 1, .8], "circle-stroke-opacity": fade } });
+  // direct labels on the largest junctions instead of a legend lookup
+  map.addLayer({ id: "j-label", type: "symbol", source: "junctions", filter: [">=", ["get", "n"], 8], minzoom: 11.2, maxzoom: 15.5,
+    layout: { "text-field": ["get", "name"], "text-font": ["Noto Sans Italic"], "text-size": 11, "text-anchor": "left", "text-offset": [1.3, 0], "text-max-width": 14 },
+    paint: { "text-color": ink, "text-halo-color": "#fffff8", "text-halo-width": 1.6 } });
+  map.addLayer({ id: "ai", type: "symbol", source: "ai", layout: { "text-field": "◇", "text-font": ["Noto Sans Bold"], "text-size": 20, "text-allow-overlap": true, "text-offset": [.7, -.7] },
+    paint: { "text-color": "#a4161a", "text-halo-color": "#fffff8", "text-halo-width": 1.5 } });
+  wireClicks(map, popup, "j", "ai");
+  fit(map, 50);
+  document.getElementById("table").addEventListener("click", e => { const b = e.target.closest(".r"); if (b) flyToJunction(map, popup, b.dataset.id); });
+})();
+</script>
+</body>
+</html>
