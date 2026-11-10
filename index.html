@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Κάμερες οδικής κυκλοφορίας Αττικής</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+  :root {
+    --bg: #0b1220; --panel: #0f1828; --raised: #152136; --ink: #e8eef7; --muted: #8a9bb3; --line: #1f2c42;
+    --all: #ff5a4f; --both: #ffb020; --one: #3ddc97; --approx: #8a9bb3; --accent: #7fb2ff; --ai: #b48cff;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { font: 14px/1.4 "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--bg); }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  #app { display: grid; grid-template-columns: 372px 1fr; height: 100%; }
+  #side { display: flex; flex-direction: column; background: var(--panel); border-right: 1px solid var(--line); min-height: 0; z-index: 2; }
+  header { padding: 18px 18px 14px; border-bottom: 1px solid var(--line); }
+  .eyebrow { font: 600 10.5px "IBM Plex Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .lights { display: inline-flex; gap: 3px; padding: 3px 4px; background: #060b14; border-radius: 6px; }
+  .lights i { width: 6px; height: 6px; border-radius: 50%; }
+  .titlerow { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; }
+  h1 { font-size: 19px; font-weight: 700; line-height: 1.2; margin: 0; flex: 1; letter-spacing: -.01em; }
+  .btn { border: 1px solid var(--line); background: var(--raised); border-radius: 6px; padding: 4px 9px; font: 600 11px "IBM Plex Mono", monospace; cursor: pointer; color: var(--muted); }
+  .btn:hover, .btn.on { color: var(--ink); border-color: #35486a; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .stat { padding: 9px 11px; background: var(--raised); }
+  .stat + .stat { border-left: 1px solid var(--line); }
+  .stat b { display: block; font: 600 21px "IBM Plex Mono", monospace; }
+  .stat span { color: var(--muted); font-size: 11.5px; }
+  .filters { padding: 12px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 8px; }
+  input[type=search], select { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; font: inherit; background: var(--bg); color: var(--ink); color-scheme: dark; }
+  input::placeholder { color: var(--muted); }
+  input:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  .chip i { width: 8px; height: 8px; border-radius: 50%; }
+  .chip.on { color: var(--ink); background: var(--raised); border-color: #35486a; }
+  .chip:not(.on) i { opacity: .35; }
+  .chips.layers .chip { border-radius: 7px; }
+  .chips.layers .chip i { border-radius: 2px; }
+  .sub { color: var(--muted); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #list { overflow-y: auto; flex: 1; min-height: 0; scrollbar-color: #2a3a57 transparent; }
+  .item { display: grid; grid-template-columns: 4px 1fr auto; gap: 12px; align-items: center; padding: 10px 18px 10px 0; border: 0; border-bottom: 1px solid var(--line); cursor: pointer; width: 100%; text-align: left; background: none; font: inherit; color: inherit; }
+  .item:hover { background: var(--raised); }
+  .item.active { background: #1a2942; }
+  .item .bar { align-self: stretch; border-radius: 0 3px 3px 0; }
+  .item.approx .bar { background: repeating-linear-gradient(180deg, var(--approx) 0 4px, transparent 4px 8px) !important; }
+  .item .name { font-weight: 600; }
+  .item .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .item .n { font: 600 16px "IBM Plex Mono", monospace; text-align: right; }
+  .item .n small { display: block; font: 400 10px "IBM Plex Sans", sans-serif; color: var(--muted); }
+  .empty { padding: 24px 18px; color: var(--muted); }
+  footer { padding: 10px 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11.5px; }
+  #map { height: 100%; min-height: 0; background: var(--bg); }
+  .mapbtns { position: absolute; top: 12px; left: 384px; z-index: 3; display: flex; gap: 6px; }
+  .mapbtns .btn { background: rgba(15, 24, 40, .92); padding: 7px 11px; }
+  .hint { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); margin-left: 186px; z-index: 3; background: rgba(15, 24, 40, .92); border: 1px solid var(--line); color: var(--muted); padding: 6px 12px; border-radius: 999px; font-size: 12px; pointer-events: none; transition: opacity .3s; white-space: nowrap; }
+  .maplibregl-popup-content { background: var(--panel); color: var(--ink); border: 1px solid #2a3a57; border-radius: 10px; padding: 14px 16px; font: 13px/1.4 "IBM Plex Sans", sans-serif; box-shadow: 0 12px 32px rgba(0, 0, 0, .55); }
+  .maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: #2a3a57; }
+  .maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: #2a3a57; }
+  .maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: #2a3a57; }
+  .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: #2a3a57; }
+  .maplibregl-popup-close-button { color: var(--muted); font-size: 18px; padding: 2px 8px; }
+  .maplibregl-ctrl-group { background: var(--panel); border: 1px solid var(--line); }
+  .maplibregl-ctrl-group button + button { border-top-color: var(--line); }
+  .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: invert(1) brightness(.85); }
+  .maplibregl-ctrl-attrib { background: rgba(11, 18, 32, .75) !important; color: var(--muted); }
+  .maplibregl-ctrl-attrib a { color: var(--muted); }
+  .pop .tag { font: 600 10.5px "IBM Plex Mono", monospace; letter-spacing: .1em; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+  .pop .tag i { width: 8px; height: 8px; border-radius: 50%; }
+  .pop h3 { margin: 6px 0 8px; font-size: 15px; padding-right: 14px; }
+  .pop table { border-collapse: collapse; width: 100%; }
+  .pop td { padding: 2px 0; vertical-align: top; }
+  .pop td:first-child { color: var(--muted); padding-right: 12px; white-space: nowrap; }
+  .pop ul { margin: 0; padding-left: 16px; }
+  .pop .note { margin-top: 8px; padding: 6px 8px; background: var(--raised); border-radius: 6px; font-size: 12px; color: var(--muted); }
+  .pop .links { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .pop a { color: var(--accent); }
+  .pop .go { border: 0; background: var(--accent); color: #061022; font: 600 12px "IBM Plex Sans", sans-serif; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+  .link { border: 0; background: none; padding: 0; font: inherit; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #3a4d70; cursor: pointer; white-space: nowrap; }
+  a.link { display: inline; }
+  dialog#about a { color: var(--accent); }
+  .link:hover { text-decoration-color: var(--ink); }
+  dialog#about { width: min(560px, calc(100vw - 32px)); max-height: min(720px, calc(100vh - 32px)); background: var(--panel); color: var(--ink); border: 1px solid #2a3a57; border-radius: 14px; padding: 26px 28px 22px; box-shadow: 0 24px 60px rgba(0, 0, 0, .6); }
+  dialog#about::backdrop { background: rgba(4, 8, 15, .6); backdrop-filter: blur(2px); }
+  dialog#about h2 { font-size: 21px; line-height: 1.25; margin: 12px 0 14px; letter-spacing: -.01em; }
+  dialog#about h3 { font: 600 10.5px "IBM Plex Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 20px 0 6px; }
+  dialog#about p { margin: 0 0 10px; line-height: 1.55; color: #cdd7e6; }
+  dialog#about p.lead { color: var(--ink); font-size: 15px; }
+  dialog#about ul { margin: 0; padding-left: 18px; color: #cdd7e6; line-height: 1.55; }
+  dialog#about li { margin-bottom: 4px; }
+  dialog#about .x { position: absolute; top: 14px; right: 14px; }
+  #toggle { display: none; }
+  @media (max-width: 760px) {
+    #app { grid-template-columns: 1fr; }
+    #side { position: absolute; inset: auto 0 0 0; max-height: 62%; border-right: 0; border-top: 1px solid var(--line); border-radius: 14px 14px 0 0; }
+    #side.collapsed #list, #side.collapsed .filters, #side.collapsed footer, #side.collapsed .stats, #side.collapsed .eyebrow { display: none; }
+    #toggle { display: block; }
+    header { padding: 12px 14px; }
+    .mapbtns { left: 12px; }
+    .hint { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="side">
+    <header>
+      <div class="eyebrow"><span class="lights"><i style="background:var(--all)"></i><i style="background:var(--both)"></i><i style="background:var(--one)"></i></span><span data-t="eyebrow"></span></div>
+      <div class="titlerow">
+        <h1 data-t="title"></h1>
+        <button class="btn" id="toggle" aria-label="Toggle list">☰</button>
+        <button class="btn" id="lang"></button>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="nJ">0</b><span data-t="junctions"></span></div>
+        <div class="stat"><b id="nC">0</b><span data-t="cameras"></span></div>
+        <div class="stat"><b id="nA">0</b><span data-t="areas"></span></div>
+      </div>
+    </header>
+    <div class="filters">
+      <input type="search" id="q" autocomplete="off">
+      <div class="chips layers" id="layers"></div>
+      <div class="chips" id="chips"></div>
+      <div class="row2">
+        <select id="area"></select>
+        <select id="sort"></select>
+      </div>
+    </div>
+    <div id="list"></div>
+    <footer><button class="link" id="aboutBtn" data-t="aboutLink"></button> · <a class="link" target="_blank" rel="noopener" href="https://github.com/acesonic7">GitHub</a></footer>
+  </aside>
+  <div id="map"></div>
+</div>
+<div class="mapbtns">
+  <button class="btn" id="reset"></button>
+</div>
+<div class="hint" id="hint"></div>
+<dialog id="about" aria-labelledby="aboutTitle">
+  <button class="btn x" id="aboutClose" aria-label="Close">✕</button>
+  <div class="eyebrow"><span class="lights"><i style="background:var(--all)"></i><i style="background:var(--both)"></i><i style="background:var(--one)"></i></span><span data-t="aboutEyebrow"></span></div>
+  <h2 id="aboutTitle" data-t="aboutTitle"></h2>
+  <div id="aboutBody"></div>
+</dialog>
+
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="data.js"></script>
+<script>
+const T = {
+  el: { eyebrow: "Αττική · ανοιχτή ενημέρωση", title: "Κάμερες ερυθρού σηματοδότη και Τεχνητής Νοημοσύνης", junctions: "σημεία", cameras: "κάμερες ερυθρού", areas: "περιοχές",
+        redName: "Κάμερες παραβίασης ερυθρού σηματοδότη", redShort: "Κάμερες ερυθρού", redOwner: "Περιφέρεια Αττικής", aiName: "Κάμερες Τεχνητής Νοημοσύνης", aiShort: "Κάμερες ΤΝ", aiOwner: "Υπουργείο Ψηφιακής Διακυβέρνησης και ΤΝ",
+        type: "Σύστημα", owner: "Φορέας", records: "Καταγράφει", redRecords: "Παραβίαση ερυθρού σηματοδότη", aiRecords: "Ερυθρό σηματοδότη, ταχύτητα, λεωφορειολωρίδες, ζώνη ή κράνος, χρήση κινητού", aiPilot: "Πιλοτικό σύστημα",
+        aiNote: "Το σημείο προέρχεται από δημοσιεύματα· δεν έχει δημοσιευθεί επίσημος κατάλογος. Η ακριβής θέση της κάμερας στον κόμβο δεν είναι γνωστή.", aiApprox: "Κατά προσέγγιση θέση· η διασταύρωση δεν εντοπίστηκε ακριβώς.",
+        search: "Αναζήτηση οδού, περιοχής ή αρ. κόμβου…", allAreas: "Όλες οι περιοχές",
+        sortAA: "Σειρά: Α/Α", sortCams: "Σειρά: κάμερες", sortName: "Σειρά: όνομα",
+        node: "Κόμβος", area: "Περιοχή", flow: "Ρεύμα", cams: "Κάμερες", none: "Δεν βρέθηκαν κόμβοι.",
+        all: "Όλες οι κατευθύνσεις", both: "Δύο ρεύματα", one: "Ένα ρεύμα", camUnit: "κάμ.",
+        approx: "Κατά προσέγγιση θέση· ο κόμβος δεν εντοπίστηκε ακριβώς, γι' αυτό δεν εμφανίζονται επιμέρους κάμερες.",
+        nocams: "Δεν υπάρχουν χαρτογραφημένοι σηματοδότες εδώ· εμφανίζεται μόνο ο κόμβος.",
+        zoomCams: "Εμφάνιση καμερών", camera: "Κάμερα", of: "από", onRoad: "Οδός", looks: "Κοιτάζει προς", unnamed: "χωρίς όνομα",
+        estSignal: "Εκτίμηση: θέση στον σηματοδότη της πρόσβασης, με φορά προς τον κόμβο.",
+        estRoad: "Εκτίμηση από τη γεωμετρία του δρόμου (δεν υπάρχει χαρτογραφημένος σηματοδότης).",
+        pov: "Θέα από την κάμερα", sv: "Street View", gmaps: "Google Maps",
+        aboutLink: "Σχετικά με τον χάρτη", aboutEyebrow: "Σχετικά", aboutTitle: "Γιατί υπάρχει αυτός ο χάρτης",
+        aboutBody: "<p class=\"lead\">Σε μια δημοκρατική κοινωνία, οι πολίτες έχουν δικαίωμα να γνωρίζουν τουλάχιστον πού και πότε επιτηρούνται.</p><p>Ο χάρτης αυτός υπάρχει για να κάνει αυτή τη γνώση προσιτή σε όλους: σε όσους ζουν και κινούνται στην Αττική και θέλουν να ξέρουν πού υπάρχουν κάμερες, ώστε να μπορούν να ρωτήσουν, να ελέγξουν και να ασκήσουν τα δικαιώματά τους.</p><p>Δεν είναι κατ' αρχήν αντίθετος με τις κάμερες στους δρόμους, ούτε φτιάχτηκε για να τις αποφεύγει κανείς.</p><h3>Δύο διαφορετικά συστήματα</h3><p><b>Κάμερες παραβίασης ερυθρού σηματοδότη</b> · Περιφέρεια Αττικής. 388 κάμερες σε 97 σηματοδοτούμενους κόμβους, σε θέσεις που όρισε η Διεύθυνση Τροχαίας Αττικής. Σύμφωνα με την Περιφέρεια καταγράφουν αποκλειστικά την παραβίαση του κόκκινου και στέλνουν στην Τροχαία έξι φωτογραφίες και ένα βίντεο, με μέτρα ώστε να μη διακρίνονται οι επιβαίνοντες. Κάθε κάμερα έχει φακό αναγνώρισης πινακίδων (ANPR) και φακό γενικής λήψης, και αναγνωρίζει πινακίδα, μάρκα, χρώμα και κατηγορία οχήματος.</p><p><b>Κάμερες Τεχνητής Νοημοσύνης</b> · Υπουργείο Ψηφιακής Διακυβέρνησης και Τεχνητής Νοημοσύνης. Πιλοτικό σύστημα σε οκτώ σημεία της Αττικής. Σύμφωνα με το Υπουργείο καταγράφουν παραβίαση ερυθρού σηματοδότη, υπέρβαση ταχύτητας, κίνηση ή στάση σε λεωφορειολωρίδες, μη χρήση ζώνης ή κράνους και χρήση κινητού. Οι κλήσεις αποστέλλονται ψηφιακά στη Θυρίδα Πολίτη του gov.gr.</p><h3>Τι να έχετε υπόψη</h3><ul><li>Οι κόμβοι των καμερών ερυθρού προέρχονται από τον πίνακα της Διεύθυνσης Τροχαίας Αττικής, όπως δημοσιεύθηκε στον Τύπο. Οι θέσεις τους στον χάρτη προέκυψαν από τις διασταυρώσεις των οδών στο OpenStreetMap· ορισμένες είναι κατά προσέγγιση και σημειώνονται ως τέτοιες.</li><li>Η θέση και η κατεύθυνση κάθε κάμερας ερυθρού είναι εκτίμηση από τους σηματοδότες του OpenStreetMap, όχι επίσημο στοιχείο.</li><li>Για τις κάμερες Τεχνητής Νοημοσύνης δεν έχει δημοσιευθεί επίσημος κατάλογος· τα οκτώ σημεία προέρχονται από δημοσιεύματα.</li><li>Ο χάρτης δεν είναι επίσημη πηγή και δεν αποτελεί νομική συμβουλή.</li></ul><h3>Ελεύθερη χρήση</h3><p>Ο χάρτης είναι ανοιχτός. Μοιραστείτε τον, ενσωματώστε τον, αναδημοσιεύστε τον ή χρησιμοποιήστε τα δεδομένα και τον κώδικά του ελεύθερα και χωρίς κόστος, με αναφορά της πηγής. Κώδικας: MIT · δεδομένα: ODbL (© συντελεστές του OpenStreetMap) · κείμενα: CC BY 4.0. Διορθώσεις και προσθήκες είναι ευπρόσδεκτες.</p><h3>Ποιος τον έφτιαξε</h3><p>Ιωάννης Τσούρος, συγκοινωνιολόγος, συνεργάτης του Πανεπιστημίου Αιγαίου και της MobyX. <a target=\"_blank\" rel=\"noopener\" href=\"https://github.com/acesonic7\">github.com/acesonic7</a></p><h3>Πηγές</h3><ul><li><a target=\"_blank\" rel=\"noopener\" href=\"https://www.hellenicparliament.gr/UserFiles/67715b2c-ec81-4f0c-ad6a-476a34d732bd/12807132.pdf\">Απάντηση της Περιφέρειας Αττικής στη Βουλή, 27.12.2024</a></li><li><a target=\"_blank\" rel=\"noopener\" href=\"https://www.naftemporiki.gr/society/2141505/perifereia-attikis-oloklirothike-i-egkatastasi-388-kameron-paraviasis-erythroy-simatodoti/\">Ανακοίνωση της Περιφέρειας για την ολοκλήρωση της εγκατάστασης, 23.7.2026 (Ναυτεμπορική)</a></li><li><a target=\"_blank\" rel=\"noopener\" href=\"https://www.ertnews.gr/wp-content/uploads/2026/03/30-03-26-v3enarksi-vevaiosis-kliseon-fin.pdf\">Κοινό δελτίο τύπου τριών υπουργείων, 30.3.2026</a></li><li><a target=\"_blank\" rel=\"noopener\" href=\"https://www.gocar.gr/news/feed/48640,dromoi_kameres_troxaias_attikh_pinakas_1.html\">Πίνακας κόμβων (gocar.gr, 12.11.2024)</a> · <a target=\"_blank\" rel=\"noopener\" href=\"https://www.odigostoupoliti.eu/se-poious-dromous-tis-attikis-leitourgoun-kameres-ai-gia-paravaseis-tou-kok/\">Σημεία καμερών ΤΝ (Οδηγός του Πολίτη, 22.12.2025)</a></li></ul>",
+        other: "EN", reset: "Επαναφορά όψης", hint: "Μεγεθύνετε σε έναν κόμβο για να δείτε κάθε κάμερα ερυθρού και το πεδίο της",
+        dirs: ["Β", "ΒΑ", "Α", "ΝΑ", "Ν", "ΝΔ", "Δ", "ΒΔ"] },
+  en: { eyebrow: "Attica · open information", title: "Red-light and AI cameras", junctions: "locations", cameras: "red-light cameras", areas: "areas",
+        redName: "Red-light violation cameras", redShort: "Red-light cameras", redOwner: "Attica Region", aiName: "Artificial Intelligence cameras", aiShort: "AI cameras", aiOwner: "Ministry of Digital Governance and AI",
+        type: "System", owner: "Operator", records: "Records", redRecords: "Red-light violations", aiRecords: "Red light, speed, bus lanes, seat belt or helmet, mobile phone use", aiPilot: "Pilot system",
+        aiNote: "This point comes from press reports; no official list has been published. The camera&rsquo;s exact position at the junction is not known.", aiApprox: "Approximate position; the intersection could not be pinpointed.",
+        search: "Search street, area or node no.…", allAreas: "All areas",
+        sortAA: "Order: list", sortCams: "Order: cameras", sortName: "Order: name",
+        node: "Node", area: "Area", flow: "Traffic flow", cams: "Cameras", none: "No junctions found.",
+        all: "All directions", both: "Both flows", one: "One flow", camUnit: "cam.",
+        approx: "Approximate position; the junction could not be pinpointed, so individual cameras are not shown.",
+        nocams: "No traffic signals are mapped here; only the junction is shown.",
+        zoomCams: "Show cameras", camera: "Camera", of: "of", onRoad: "Road", looks: "Looking", unnamed: "unnamed",
+        estSignal: "Estimate: placed at the approach's traffic light, facing into the junction.",
+        estRoad: "Estimated from road geometry (no traffic light is mapped here).",
+        pov: "View from camera", sv: "Street View", gmaps: "Google Maps",
+        aboutLink: "About this map", aboutEyebrow: "About", aboutTitle: "Why this map exists",
+        aboutBody: "<p class=\"lead\">In a democratic society, citizens have a right to know, at the very least, where and when they are under surveillance.</p><p>This map exists to put that knowledge within everyone's reach: people who live and travel in Attica and want to know where cameras are, so they can ask questions, check, and exercise their rights.</p><p>It is not opposed to road cameras in principle, and it was not made to help anyone avoid them.</p><h3>Two different systems</h3><p><b>Red-light violation cameras</b> · Attica Region. 388 cameras at 97 signalised junctions, at locations set by the Attica Traffic Police Directorate. According to the Region they record red-light violations only and send the Traffic Police six photos and a video, with measures so that occupants cannot be made out. Each camera has a number-plate recognition (ANPR) lens and an overview lens, and recognises the plate, make, colour and category of the vehicle.</p><p><b>Artificial Intelligence cameras</b> · Ministry of Digital Governance and AI. A pilot system at eight points in Attica. According to the Ministry they record red-light violations, speeding, driving or stopping in bus lanes, not wearing a seat belt or helmet, and mobile phone use. Fines are sent digitally to the citizen&rsquo;s gov.gr mailbox.</p><h3>Keep in mind</h3><ul><li>The red-light camera junctions come from the Attica Traffic Police Directorate&rsquo;s table as published in the press. Their map positions come from street crossings in OpenStreetMap; some are approximate and are marked as such.</li><li>The position and heading of each red-light camera is an estimate from OpenStreetMap traffic signals, not official data.</li><li>No official list of the AI cameras has been published; the eight points come from press reports.</li><li>This map is not an official source and is not legal advice.</li></ul><h3>Free to use</h3><p>This map is open. Share it, embed it, republish it, or use its data and code freely and at no cost, with credit to the source. Code: MIT · data: ODbL (© OpenStreetMap contributors) · texts: CC BY 4.0. Corrections and additions are welcome.</p><h3>Who made it</h3><p>Ioannis Tsouros, transport engineer, associate of the University of the Aegean and MobyX. <a target=\"_blank\" rel=\"noopener\" href=\"https://github.com/acesonic7\">github.com/acesonic7</a></p><h3>Sources</h3><ul><li><a target=\"_blank\" rel=\"noopener\" href=\"https://www.hellenicparliament.gr/UserFiles/67715b2c-ec81-4f0c-ad6a-476a34d732bd/12807132.pdf\">Attica Region reply to Parliament, 27 Dec 2024 (Greek)</a></li><li><a target=\"_blank\" rel=\"noopener\" href=\"https://www.naftemporiki.gr/society/2141505/perifereia-attikis-oloklirothike-i-egkatastasi-388-kameron-paraviasis-erythroy-simatodoti/\">Region announcement on completed installation, 23 Jul 2026 (Naftemporiki)</a></li><li><a target=\"_blank\" rel=\"noopener\" href=\"https://www.ertnews.gr/wp-content/uploads/2026/03/30-03-26-v3enarksi-vevaiosis-kliseon-fin.pdf\">Joint press release of three ministries, 30 Mar 2026 (Greek)</a></li><li><a target=\"_blank\" rel=\"noopener\" href=\"https://www.gocar.gr/news/feed/48640,dromoi_kameres_troxaias_attikh_pinakas_1.html\">Junction table (gocar.gr, 12 Nov 2024)</a> · <a target=\"_blank\" rel=\"noopener\" href=\"https://www.odigostoupoliti.eu/se-poious-dromous-tis-attikis-leitourgoun-kameres-ai-gia-paravaseis-tou-kok/\">AI camera points (Odigos tou Politi, 22 Dec 2025)</a></li></ul>",
+        other: "ΕΛ", reset: "Reset view", hint: "Zoom into a junction to see each camera and its field of view",
+        dirs: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] }
+};
+let lang = "el";
+try { lang = localStorage.getItem("lang") || "el"; } catch (e) {}
+const t = k => T[lang][k];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const norm = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/ς/g, "σ");
+const COL = { all: "#ff5a4f", both: "#ffb020", one: "#3ddc97", approx: "#8a9bb3", ai: "#b48cff" };
+const compass = h => t("dirs")[Math.round(h / 45) % 8];
+const CAM_ZOOM = 15.2;
+
+// ---- geometry helpers
+const M = 111320;
+function offset(lat, lon, hdg, dist) {
+  const r = hdg * Math.PI / 180;
+  return [lon + Math.sin(r) * dist / (M * Math.cos(lat * Math.PI / 180)), lat + Math.cos(r) * dist / M];
+}
+function cone(c, reach = 32, fov = 40) {
+  const ring = [[c.lon, c.lat]];
+  for (let i = 0; i <= 10; i++) ring.push(offset(c.lat, c.lon, c.hdg - fov / 2 + fov * i / 10, reach));
+  ring.push([c.lon, c.lat]);
+  return ring;
+}
+
+// ---- data
+const cams = [];
+JUNCTIONS.forEach(j => {
+  j.key = norm([j.location, j.area, j.node, j.flows.map(f => f.direction).join(" ")].join(" "));
+  j.kind = j.approx ? "approx" : j.coverage;
+  j.cams.forEach((c, i) => { c.id = j.id * 100 + i; c.j = j; c.i = i; cams.push(c); });
+});
+const active = { all: true, both: true, one: true };
+const layersOn = { red: true, ai: true };
+AI_SITES.forEach(a => { a.ai = true; a.kind = "ai"; a.cams = []; a.key = norm([a.location, a.area, "ai τν τεχνητη νοημοσυνη"].join(" ")); });
+const findRow = id => JUNCTIONS.find(x => x.id == id) || AI_SITES.find(x => x.id == id);
+const aiGeo = rows => ({ type: "FeatureCollection", features: rows.map(a => ({ type: "Feature", id: a.id,
+  geometry: { type: "Point", coordinates: [a.lon, a.lat] }, properties: { id: a.id, approx: a.approx } })) });
+
+// ---- map style: start from OpenFreeMap's dark style and re-colour it so roads recede and markers carry the map
+async function buildStyle() {
+  const s = await (await fetch("https://tiles.openfreemap.org/styles/dark")).json();
+  const P = (l, k, v) => { l.paint = l.paint || {}; l.paint[k] = v; };
+  s.layers.forEach(l => {
+    const id = l.id;
+    if (l.type === "background") P(l, "background-color", "#0b1220");
+    else if (l.type === "fill") {
+      if (id === "water") P(l, "fill-color", "#06192d");
+      else if (/wood|park/.test(id)) { P(l, "fill-color", "#0e2320"); P(l, "fill-opacity", .8); }
+      else if (id === "building") { P(l, "fill-color", "#141f33"); P(l, "fill-outline-color", "#1c2a44"); }
+      else if (/residential/.test(id)) P(l, "fill-color", "#0d1627");
+      else if (/aeroway|pier/.test(id)) P(l, "fill-color", "#131d30");
+    } else if (l.type === "line") {
+      if (id === "waterway") P(l, "line-color", "#06192d");
+      else if (/casing/.test(id)) P(l, "line-color", "#0b1220");
+      else if (/motorway/.test(id)) P(l, "line-color", "#6d82a8");
+      else if (/major/.test(id)) P(l, "line-color", "#45577a");
+      else if (/minor|path|pier/.test(id)) P(l, "line-color", "#24324b");
+      else if (/rail/.test(id)) P(l, "line-color", "#2a3a56");
+      else if (/aeroway/.test(id)) P(l, "line-color", "#1c2940");
+      else if (/boundary/.test(id)) P(l, "line-color", "#2a3a56");
+    } else if (l.type === "symbol" && l.layout && l.layout["text-field"]) {
+      P(l, "text-color", /^place/.test(id) ? "#b4c2d8" : /water/.test(id) ? "#3e648f" : "#7488a8");
+      P(l, "text-halo-color", "#0b1220"); P(l, "text-halo-width", 1.3);
+    }
+  });
+  return s;
+}
+
+let map, popup, fontStack = ["Noto Sans Bold"];
+const jGeo = rows => ({ type: "FeatureCollection", features: rows.map(j => ({ type: "Feature", id: j.id,
+  geometry: { type: "Point", coordinates: [j.lon, j.lat] },
+  properties: { id: j.id, n: j.cameras, kind: j.kind, has: j.cams.length > 0 } })) });
+const cGeo = rows => ({ type: "FeatureCollection", features: rows.flatMap(j => j.cams.map(c => ({ type: "Feature", id: c.id,
+  geometry: { type: "Point", coordinates: [c.lon, c.lat] }, properties: { id: c.id, kind: j.kind, hdg: c.hdg } }))) });
+const coneGeo = rows => ({ type: "FeatureCollection", features: rows.flatMap(j => j.cams.map(c => ({ type: "Feature", id: c.id,
+  geometry: { type: "Polygon", coordinates: [cone(c)] }, properties: { id: c.id, kind: j.kind } }))) });
+const kindColor = ["match", ["get", "kind"], "all", COL.all, "both", COL.both, "one", COL.one, COL.approx];
+
+async function init() {
+  const style = await buildStyle();
+  const place = style.layers.find(l => l.id === "place_city");
+  if (place && place.layout["text-font"]) fontStack = place.layout["text-font"];
+  map = new maplibregl.Map({ container: "map", style, center: [23.72, 37.98], zoom: 10, maxPitch: 80, attributionControl: { compact: true } });
+  map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
+  map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
+  popup = new maplibregl.Popup({ maxWidth: "330px", offset: 14 });
+  await new Promise(r => map.on("load", r));
+  const vsrc = Object.keys(style.sources).find(k => style.sources[k].type === "vector");
+
+  map.addLayer({ id: "bld3d", type: "fill-extrusion", source: vsrc, "source-layer": "building", minzoom: 15,
+    paint: { "fill-extrusion-color": "#1b2942", "fill-extrusion-opacity": .82,
+      "fill-extrusion-height": ["interpolate", ["linear"], ["zoom"], 15, 0, 16, ["coalesce", ["get", "render_height"], 8]],
+      "fill-extrusion-base": ["coalesce", ["get", "render_min_height"], 0] } });
+
+  map.addSource("cones", { type: "geojson", data: coneGeo([]) });
+  map.addSource("cams", { type: "geojson", data: cGeo([]) });
+  map.addSource("junctions", { type: "geojson", data: jGeo([]) });
+  const sel = ["boolean", ["feature-state", "sel"], false];
+  map.addLayer({ id: "cone-fill", type: "fill", source: "cones", minzoom: CAM_ZOOM, paint: { "fill-color": kindColor, "fill-opacity": ["case", sel, .5, .2] } });
+  map.addLayer({ id: "cone-line", type: "line", source: "cones", minzoom: CAM_ZOOM, paint: { "line-color": kindColor, "line-width": ["case", sel, 2, 1], "line-opacity": .85 } });
+  map.addLayer({ id: "cam-dot", type: "circle", source: "cams", minzoom: CAM_ZOOM, paint: {
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], CAM_ZOOM, 3, 18, 7], "circle-color": ["case", sel, "#ffffff", "#0b1220"],
+    "circle-stroke-color": kindColor, "circle-stroke-width": 2.5 } });
+  // junction markers: colour = coverage, number = cameras; they step back once individual cameras are visible
+  const fade = ["interpolate", ["linear"], ["zoom"], CAM_ZOOM, 1, CAM_ZOOM + .8, ["case", ["get", "has"], 0, 1]];
+  const rad = ["interpolate", ["linear"], ["zoom"], 9, ["+", 5, ["*", .5, ["get", "n"]]], 14, ["+", 10, ["*", .8, ["get", "n"]]]];
+  const glowRad = ["interpolate", ["linear"], ["zoom"], 9, ["*", 1.9, ["+", 5, ["*", .5, ["get", "n"]]]], 14, ["*", 1.9, ["+", 10, ["*", .8, ["get", "n"]]]]];
+  const glowFade = ["interpolate", ["linear"], ["zoom"], CAM_ZOOM, .35, CAM_ZOOM + .8, ["case", ["get", "has"], 0, .35]];
+  map.addLayer({ id: "j-glow", type: "circle", source: "junctions", paint: { "circle-radius": glowRad, "circle-color": kindColor, "circle-blur": 1, "circle-opacity": glowFade } });
+  map.addLayer({ id: "j-dot", type: "circle", source: "junctions", paint: { "circle-radius": rad,
+    "circle-color": ["case", ["==", ["get", "kind"], "approx"], "#0b1220", kindColor], "circle-opacity": fade,
+    "circle-stroke-color": ["case", ["==", ["get", "kind"], "approx"], COL.approx, "#0b1220"], "circle-stroke-width": 2, "circle-stroke-opacity": fade } });
+  map.addLayer({ id: "j-num", type: "symbol", source: "junctions", layout: { "text-field": ["to-string", ["get", "n"]], "text-font": fontStack,
+    "text-size": ["interpolate", ["linear"], ["zoom"], 9, 9, 14, 13], "text-allow-overlap": true, "symbol-sort-key": ["-", 0, ["get", "n"]] },
+    paint: { "text-color": ["case", ["==", ["get", "kind"], "approx"], COL.approx, "#0b1220"], "text-opacity": fade } });
+  map.addLayer({ id: "j-ring", type: "circle", source: "junctions", minzoom: CAM_ZOOM + .5, filter: ["get", "has"],
+    paint: { "circle-radius": 5, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": kindColor, "circle-stroke-width": 1.5, "circle-stroke-opacity": .7 } });
+
+  // AI cameras: a violet badge set to the upper right of the junction, so it stays readable where both systems meet
+  map.addSource("ai", { type: "geojson", data: aiGeo([]) });
+  const shift = [13, -13];
+  map.addLayer({ id: "ai-dot", type: "circle", source: "ai", paint: { "circle-radius": 10, "circle-color": ["case", ["get", "approx"], "#0b1220", COL.ai],
+    "circle-stroke-color": ["case", ["get", "approx"], COL.ai, "#0b1220"], "circle-stroke-width": 2, "circle-translate": shift } });
+  map.addLayer({ id: "ai-num", type: "symbol", source: "ai", layout: { "text-field": "AI", "text-font": fontStack, "text-size": 10, "text-allow-overlap": true, "text-ignore-placement": true },
+    paint: { "text-color": ["case", ["get", "approx"], COL.ai, "#0b1220"], "text-translate": shift } });
+
+  ["j-dot", "cam-dot", "cone-fill", "ai-dot"].forEach(id => {
+    map.on("mouseenter", id, () => map.getCanvas().style.cursor = "pointer");
+    map.on("mouseleave", id, () => map.getCanvas().style.cursor = "");
+  });
+  map.on("click", e => {
+    const hit = map.queryRenderedFeatures(e.point, { layers: ["ai-dot", "cam-dot", "j-dot", "cone-fill"] })[0];
+    if (!hit) return;
+    if (hit.layer.id === "ai-dot") return openAi(AI_SITES.find(a => a.id === hit.properties.id));
+    if (hit.layer.id === "j-dot") { if (hit.properties.has && map.getZoom() > CAM_ZOOM + .8) return; openJunction(JUNCTIONS.find(j => j.id === hit.properties.id)); }
+    else openCamera(cams.find(c => c.id === hit.properties.id));
+  });
+  map.on("zoom", () => { $("hint").style.opacity = map.getZoom() < CAM_ZOOM ? 1 : 0; });
+  popup.on("close", () => selectCam(null));
+  applyLang();
+  render(true);
+}
+
+// ---- popups
+let selCam = null;
+function selectCam(c) {
+  if (selCam != null) ["cones", "cams"].forEach(s => map.setFeatureState({ source: s, id: selCam }, { sel: false }));
+  selCam = c ? c.id : null;
+  if (c) ["cones", "cams"].forEach(s => map.setFeatureState({ source: s, id: c.id }, { sel: true }));
+}
+const tag = j => `<div class="tag" style="color:${COL[j.kind]}"><i style="background:${COL[j.kind]}"></i>${t(j.kind === "approx" ? j.coverage : j.kind)}</div>`;
+function openJunction(j) {
+  setActive(j);
+  const flows = j.flows.length > 1 ? "<ul>" + j.flows.map(f => `<li>${esc(f.direction)} (${f.cameras})</li>`).join("") + "</ul>" : esc(j.flows[0].direction);
+  const ll = j.lat + "," + j.lon;
+  popup.setLngLat([j.lon, j.lat]).setHTML(`<div class="pop">${tag(j)}<h3>${esc(j.location)}</h3><table>
+    <tr><td>${t("type")}</td><td>${t("redName")}<div class="sub">${t("redOwner")}</div></td></tr>
+    <tr><td>${t("node")}</td><td class="mono">${j.node} <span style="color:var(--muted)">· Α/Α ${j.aa.join(", ")}</span></td></tr>
+    <tr><td>${t("area")}</td><td>${esc(j.area)}</td></tr>
+    <tr><td>${t("flow")}</td><td>${flows}</td></tr>
+    <tr><td>${t("cams")}</td><td class="mono"><b>${j.cameras}</b></td></tr></table>
+    ${j.approx ? `<div class="note">${t("approx")}</div>` : !j.cams.length ? `<div class="note">${t("nocams")}</div>` : ""}
+    <div class="links">${j.cams.length ? `<button class="go" data-zoom="${j.id}">${t("zoomCams")}</button>` : ""}
+    <a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${ll}">${t("gmaps")}</a></div></div>`).addTo(map);
+}
+function openAi(a) {
+  setActive(a);
+  popup.setLngLat([a.lon, a.lat]).setHTML(`<div class="pop"><div class="tag" style="color:${COL.ai}"><i style="background:${COL.ai}"></i>${t("aiPilot")}</div>
+    <h3>${esc(a.location)}</h3><table>
+    <tr><td>${t("type")}</td><td>${t("aiName")}<div class="sub">${t("aiOwner")}</div></td></tr>
+    <tr><td>${t("area")}</td><td>${esc(a.area)}</td></tr>
+    <tr><td>${t("records")}</td><td>${t("aiRecords")}</td></tr></table>
+    <div class="note">${a.approx ? t("aiApprox") + " " : ""}${t("aiNote")}</div>
+    <div class="links"><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${a.lat},${a.lon}">${t("gmaps")}</a></div></div>`).addTo(map);
+}
+function openCamera(c) {
+  const j = c.j;
+  setActive(j); selectCam(c);
+  popup.setLngLat([c.lon, c.lat]).setHTML(`<div class="pop">${tag(j)}<h3>${t("camera")} ${c.i + 1} ${t("of")} ${j.cams.length} · ${esc(j.location)}</h3><table>
+    <tr><td>${t("onRoad")}</td><td>${esc(c.road || t("unnamed"))}</td></tr>
+    <tr><td>${t("looks")}</td><td class="mono">${compass(c.hdg)} · ${c.hdg}°</td></tr>
+    <tr><td>${t("records")}</td><td>${t("redRecords")}</td></tr>
+    <tr><td>${t("node")}</td><td class="mono">${j.node}</td></tr></table>
+    <div class="note">${t(c.src === "signal" ? "estSignal" : "estRoad")}</div>
+    <div class="links"><button class="go" data-pov="${c.id}">${t("pov")}</button>
+    <a target="_blank" rel="noopener" href="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${c.lat},${c.lon}&heading=${c.hdg}&pitch=-5&fov=80">${t("sv")}</a></div></div>`).addTo(map);
+  selectCam(c);
+}
+document.addEventListener("click", e => {
+  const z = e.target.closest("[data-zoom]"), p = e.target.closest("[data-pov]");
+  if (z) { const j = JUNCTIONS.find(x => x.id == z.dataset.zoom); popup.remove(); map.flyTo({ center: [j.lon, j.lat], zoom: 18, pitch: 45, speed: 1.4 }); }
+  if (p) { // schematic point of view: sit behind the camera, look along its heading over the 3D buildings
+    const c = cams.find(x => x.id == p.dataset.pov); popup.remove(); selectCam(c);
+    map.flyTo({ center: offset(c.lat, c.lon, c.hdg, 28), zoom: 19.4, pitch: 76, bearing: c.hdg, speed: 1.2 });
+  }
+});
+
+// ---- list + filters
+let activeId = null;
+function setActive(j) {
+  activeId = j.id;
+  document.querySelectorAll(".item").forEach(el => el.classList.toggle("active", el.dataset.id == j.id));
+  const el = document.querySelector(`.item[data-id="${j.id}"]`);
+  if (el) el.scrollIntoView({ block: "nearest" });
+}
+function current() {
+  const q = norm($("q").value.trim()).split(/\s+/).filter(Boolean);
+  const area = $("area").value, sort = $("sort").value;
+  const rows = JUNCTIONS.filter(j => layersOn.red && active[j.coverage] && (!area || j.area === area) && q.every(w => j.key.includes(w)));
+  if (sort === "cams") rows.sort((a, b) => b.cameras - a.cameras || a.aa[0] - b.aa[0]);
+  else if (sort === "name") rows.sort((a, b) => norm(a.location).localeCompare(norm(b.location), "el"));
+  else rows.sort((a, b) => a.aa[0] - b.aa[0]);
+  return rows;
+}
+function currentAi() {
+  const q = norm($("q").value.trim()).split(/\s+/).filter(Boolean), area = $("area").value;
+  return AI_SITES.filter(a => layersOn.ai && (!area || a.area === area) && q.every(w => a.key.includes(w)));
+}
+function render(fit) {
+  const rows = current(), ai = currentAi();
+  map.getSource("ai").setData(aiGeo(ai));
+  map.getSource("junctions").setData(jGeo(rows));
+  map.getSource("cams").setData(cGeo(rows));
+  map.getSource("cones").setData(coneGeo(rows));
+  $("nJ").textContent = new Set([...rows, ...ai].map(r => r.lat.toFixed(4) + "," + r.lon.toFixed(4))).size;
+  $("nC").textContent = rows.reduce((s, j) => s + j.cameras, 0);
+  $("nA").textContent = new Set([...rows, ...ai].map(j => j.area)).size;
+  const aiItems = ai.map(a => `
+    <button class="item${a.id === activeId ? " active" : ""}${a.approx ? " approx" : ""}" data-id="${a.id}">
+      <span class="bar" style="background:${COL.ai}"></span>
+      <span><div class="name">${esc(a.location)}</div>
+      <div class="meta">${esc(a.area)} · ${t("aiShort")} · ${t("aiPilot")}</div></span>
+      <span class="n" style="color:${COL.ai}">AI</span>
+    </button>`).join("");
+  $("list").innerHTML = rows.length + ai.length ? aiItems + rows.map(j => `
+    <button class="item${j.id === activeId ? " active" : ""}${j.approx ? " approx" : ""}" data-id="${j.id}">
+      <span class="bar" style="background:${COL[j.kind]}"></span>
+      <span><div class="name">${esc(j.location)}</div>
+      <div class="meta">${esc(j.area)} · <span class="mono">${j.node}</span> · ${t("redShort")} · ${t(j.coverage)}</div></span>
+      <span class="n">${j.cameras}<small>${t("camUnit")}</small></span>
+    </button>`).join("") : `<div class="empty">${t("none")}</div>`;
+  if (fit && rows.length + ai.length) {
+    const b = new maplibregl.LngLatBounds();
+    [...rows, ...ai].forEach(j => b.extend([j.lon, j.lat]));
+    map.fitBounds(b, { padding: 70, maxZoom: 16.5, pitch: 0, bearing: 0, duration: 700 });
+  }
+}
+$("list").addEventListener("click", e => {
+  const el = e.target.closest(".item"); if (!el) return;
+  const j = findRow(el.dataset.id);
+  popup.remove(); setActive(j);
+  map.flyTo({ center: [j.lon, j.lat], zoom: j.cams.length ? 17.6 : 16, pitch: 40, speed: 1.6 });
+  if (!j.cams.length) map.once("moveend", () => j.ai ? openAi(j) : openJunction(j));
+  if (window.innerWidth <= 760) $("side").classList.add("collapsed");
+});
+$("q").addEventListener("input", () => render(true));
+$("area").addEventListener("change", () => render(true));
+$("sort").addEventListener("change", () => render(false));
+$("aboutBtn").addEventListener("click", () => $("about").showModal());
+$("aboutClose").addEventListener("click", () => $("about").close());
+$("about").addEventListener("click", e => { if (e.target === $("about")) $("about").close(); });
+$("toggle").addEventListener("click", () => $("side").classList.toggle("collapsed"));
+$("chips").addEventListener("click", e => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  active[c.dataset.k] = !active[c.dataset.k]; applyLang();
+});
+$("layers").addEventListener("click", e => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  layersOn[c.dataset.k] = !layersOn[c.dataset.k]; applyLang(); render(true);
+});
+$("reset").addEventListener("click", () => { popup.remove(); render(true); });
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.title = t("title") + " · " + (lang === "el" ? "Αττική" : "Attica");
+  document.querySelectorAll("[data-t]").forEach(el => el.textContent = t(el.dataset.t));
+  $("q").placeholder = t("search");
+  $("aboutBody").innerHTML = t("aboutBody");
+  ["lang:other", "reset:reset", "hint:hint"].forEach(p => { const [id, k] = p.split(":"); $(id).textContent = t(k); });
+  const a = $("area").value, s = $("sort").value || "aa";
+  const areas = [...new Set([...JUNCTIONS, ...AI_SITES].map(j => j.area))].sort((x, y) => x.localeCompare(y, "el"));
+  $("area").innerHTML = `<option value="">${t("allAreas")}</option>` + areas.map(x => `<option>${esc(x)}</option>`).join("");
+  $("area").value = a;
+  $("sort").innerHTML = `<option value="aa">${t("sortAA")}</option><option value="cams">${t("sortCams")}</option><option value="name">${t("sortName")}</option>`;
+  $("sort").value = s;
+  $("layers").innerHTML = [["red", "redName", "#e8eef7"], ["ai", "aiName", COL.ai]].map(([k, name, col]) =>
+    `<button class="chip${layersOn[k] ? " on" : ""}" data-k="${k}" aria-pressed="${layersOn[k]}"><i style="background:${col}"></i>${t(name)}</button>`).join("");
+  $("chips").style.display = layersOn.red ? "" : "none";
+  $("chips").innerHTML = ["all", "both", "one"].map(k =>
+    `<button class="chip${active[k] ? " on" : ""}" data-k="${k}" aria-pressed="${active[k]}"><i style="background:${COL[k]}"></i>${t(k)}</button>`).join("");
+  if (popup) popup.remove();
+  if (map && map.getSource("junctions")) render(false);
+}
+$("lang").addEventListener("click", () => { lang = lang === "el" ? "en" : "el"; try { localStorage.setItem("lang", lang); } catch (e) {} applyLang(); });
+applyLang();
+init();
+</script>
+</body>
+</html>

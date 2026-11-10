@@ -1,0 +1,4 @@
+google_maps_key.txt
+__pycache__/
+*.log
+.claude/
