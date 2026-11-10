@@ -114,17 +114,39 @@
   .pop .go:hover { background: var(--ink); color: var(--bg); }
   .link { border: 0; background: none; padding: 0; font: inherit; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--underline); cursor: pointer; white-space: nowrap; }
   a.link { display: inline; }
-  dialog#about a { color: var(--accent); }
+  dialog.dlg a { color: var(--accent); }
   .link:hover { text-decoration-color: var(--ink); }
-  dialog#about { width: min(560px, calc(100vw - 32px)); max-height: min(720px, calc(100vh - 32px)); background: var(--panel); color: var(--ink); border: 1.5px solid var(--rule); border-radius: 0; padding: 26px 28px 22px; box-shadow: 8px 8px 0 var(--shadow); }
-  dialog#about::backdrop { background: var(--backdrop); backdrop-filter: blur(2px); }
-  dialog#about h2 { font: 600 17px/1.3 "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .03em; margin: 12px 0 14px; }
-  dialog#about h3 { font: 600 10.5px "IBM Plex Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 20px 0 6px; }
-  dialog#about p { margin: 0 0 10px; line-height: 1.55; color: var(--body2); }
-  dialog#about p.lead { color: var(--ink); font-size: 15px; }
-  dialog#about ul { margin: 0; padding-left: 18px; color: var(--body2); line-height: 1.55; }
-  dialog#about li { margin-bottom: 4px; }
-  dialog#about .x { position: absolute; top: 14px; right: 14px; }
+  dialog.dlg { width: min(560px, calc(100vw - 32px)); max-height: min(720px, calc(100vh - 32px)); background: var(--panel); color: var(--ink); border: 1.5px solid var(--rule); border-radius: 0; padding: 26px 28px 22px; box-shadow: 8px 8px 0 var(--shadow); }
+  dialog.dlg::backdrop { background: var(--backdrop); backdrop-filter: blur(2px); }
+  dialog.dlg h2 { font: 600 17px/1.3 "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .03em; margin: 12px 0 14px; }
+  dialog.dlg h3 { font: 600 10.5px "IBM Plex Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 20px 0 6px; }
+  dialog.dlg p { margin: 0 0 10px; line-height: 1.55; color: var(--body2); }
+  dialog.dlg p.lead { color: var(--ink); font-size: 15px; }
+  dialog.dlg ul { margin: 0; padding-left: 18px; color: var(--body2); line-height: 1.55; }
+  dialog.dlg li { margin-bottom: 4px; }
+  dialog.dlg .x { position: absolute; top: 14px; right: 14px; }
+  /* feedback form */
+  #fb { width: min(460px, calc(100vw - 32px)); }
+  #fb .target { border: 1px solid var(--rule); padding: 8px 10px; margin-bottom: 12px; font-size: 13px; }
+  #fb .target small { display: block; color: var(--muted); font: 500 9.5px "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 2px; }
+  #fb fieldset { border: 0; padding: 0; margin: 0 0 10px; display: grid; gap: 4px; }
+  #fb label.opt { display: flex; gap: 8px; align-items: center; font-size: 13.5px; cursor: pointer; }
+  #fb textarea { width: 100%; min-height: 84px; resize: vertical; padding: 8px 9px; border: 1px solid var(--rule); border-radius: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 "IBM Plex Sans", sans-serif; }
+  #fb .pick { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0; font-size: 13px; }
+  #fb .pick .mono { color: var(--muted); }
+  #fb .fine { color: var(--muted); font-size: 11.5px; line-height: 1.45; margin: 10px 0 0; }
+  #fb .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+  #fb .btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  #fb .btn[disabled] { opacity: .5; cursor: default; }
+  #fb .status { font-size: 13px; margin-top: 10px; min-height: 18px; }
+  #fb .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  .pop .report { margin-top: 8px; padding-top: 7px; border-top: 1px solid var(--line); }
+  .pop .report button { border: 0; background: none; padding: 0; color: var(--muted); font: 11.5px "IBM Plex Sans", sans-serif; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--underline); cursor: pointer; }
+  .pop .report button:hover { color: var(--ink); }
+  #pickbar { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 6; display: none; align-items: center; gap: 10px; background: var(--ink); color: var(--bg); padding: 8px 8px 8px 14px; font: 12px "IBM Plex Mono", monospace; max-width: calc(100% - 20px); }
+  #pickbar button { border: 1px solid var(--bg); background: none; color: var(--bg); font: inherit; padding: 4px 8px; cursor: pointer; text-transform: uppercase; }
+  body.picking #pickbar { display: flex; }
+  body.picking .hint, body.picking .mapbtns { display: none; }
   #toggle { display: none; }
   .grab { display: none; }
   @media (max-width: 760px) {
@@ -149,7 +171,7 @@
     #tblock, .hint, #grid { display: none; }
     .maplibregl-ctrl-bottom-right { bottom: var(--sheet, 0px); }
     .maplibregl-popup { max-width: calc(100vw - 28px) !important; }
-    dialog#about { padding: 20px 18px 16px; max-height: calc(100dvh - 24px); }
+    dialog.dlg { padding: 20px 18px 16px; max-height: calc(100dvh - 24px); }
   }
 </style>
 </head>
@@ -185,13 +207,14 @@
     </div>
     <div class="cap"><span data-t="colNode"></span><span data-t="colPlace"></span><span data-t="colCams"></span></div>
     <div id="list"></div>
-    <footer><button class="link" id="aboutBtn" data-t="aboutLink"></button> · <a class="link" target="_blank" rel="noopener" href="https://github.com/acesonic7">GitHub</a></footer>
+    <footer><button class="link" id="aboutBtn" data-t="aboutLink"></button> · <button class="link" id="fbBtn" data-t="fbLink"></button> · <a class="link" target="_blank" rel="noopener" href="https://github.com/acesonic7">GitHub</a></footer>
   </aside>
   <div id="mapwrap">
     <div id="map"></div>
     <div id="grid"></div>
     <div class="mapbtns"><button class="btn" id="reset"></button></div>
     <div class="hint" id="hint"></div>
+    <div id="pickbar"><span data-t="pickHint"></span><button id="pickCancel" data-t="cancel"></button></div>
     <div id="tblock">
       <div class="t" data-t="title"></div>
       <div class="g">
@@ -203,7 +226,21 @@
     </div>
   </div>
 </div>
-<dialog id="about" aria-labelledby="aboutTitle">
+<dialog id="fb" class="dlg" aria-labelledby="fbTitle">
+  <button class="btn x" id="fbClose" aria-label="Close">✕</button>
+  <h2 id="fbTitle"></h2>
+  <form id="fbForm" novalidate>
+    <div class="target" id="fbTarget"></div>
+    <fieldset id="fbIssue"></fieldset>
+    <textarea id="fbMsg" maxlength="2000"></textarea>
+    <input class="hp" type="text" id="fbHp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="pick" id="fbPick"><button type="button" class="btn" id="fbPickBtn"></button><span class="mono" id="fbPickVal"></span></div>
+    <p class="fine" data-t="fbPublic"></p>
+    <div class="status" id="fbStatus" role="status"></div>
+    <div class="actions"><button type="button" class="btn" id="fbCancel" data-t="cancel"></button><button type="submit" class="btn primary" id="fbSend" data-t="send"></button></div>
+  </form>
+</dialog>
+<dialog id="about" class="dlg" aria-labelledby="aboutTitle">
   <button class="btn x" id="aboutClose" aria-label="Close">✕</button>
   <div class="eyebrow"><span class="lights"><i style="background:var(--all)"></i><i style="background:var(--both)"></i><i style="background:var(--one)"></i></span><span data-t="aboutEyebrow"></span></div>
   <h2 id="aboutTitle" data-t="aboutTitle"></h2>
@@ -217,6 +254,12 @@
 const T = {
   el: { eyebrow: "Ανοιχτά δεδομένα · Αττική · Νοέμβριος 2026", thLight: "Φωτεινό", thDark: "Σκοτεινό", thAuto: "Αυτόματο", thLabel: "Εμφάνιση", title: "Κάμερες ερυθρού σηματοδότη και Τεχνητής Νοημοσύνης", junctions: "σημεία", cameras: "κάμερες ερυθρού", areas: "περιοχές",
         colNode: "Κόμβος", colPlace: "Θέση", colCams: "Καμ.", tbArea: "Περιοχή", tbAreaV: "Αττική", tbCams: "Κάμερες", tbDate: "Ενημέρωση", tbDateV: "Νοέμβριος 2026", tbScale: "Κλίμακα", aiUnit: "ΤΝ",
+        fbLink: "Σχόλια", fbTitleGen: "Σχόλια για τον χάρτη", fbTitlePoint: "Αναφορά λάθους", fbMsgGen: "Τι θα θέλατε να μας πείτε;", fbMsgPoint: "Προαιρετικά: τι ακριβώς είναι λάθος;",
+        fbFor: "Αφορά", report: "Αναφορά λάθους", isPosition: "Η θέση είναι λάθος", isMissing: "Δεν υπάρχει κάμερα εδώ", isDetails: "Λάθος στοιχεία (αριθμός, κατεύθυνση)", isOther: "Κάτι άλλο",
+        pickBtn: "Υποδείξτε τη σωστή θέση στον χάρτη", pickAgain: "Αλλαγή θέσης", pickHint: "Πατήστε στον χάρτη στη σωστή θέση", picked: "Προτεινόμενη θέση", cancel: "Άκυρο", send: "Αποστολή",
+        fbPublic: "Η αναφορά δημοσιεύεται δημόσια στο GitHub του χάρτη, χωρίς το όνομά σας. Μη γράψετε προσωπικά στοιχεία.",
+        fbSending: "Αποστολή…", fbThanks: "Ευχαριστούμε! Η αναφορά στάλθηκε.", fbEmpty: "Γράψτε ένα σύντομο μήνυμα ή υποδείξτε θέση.", fbRate: "Στείλατε αρκετές αναφορές· δοκιμάστε ξανά σε λίγα λεπτά.",
+        fbFail: "Η αποστολή δεν ήταν δυνατή.", fbFallback: "Στείλτε την από το GitHub", cam: "κάμερα",
         redName: "Κάμερες παραβίασης ερυθρού σηματοδότη", redShort: "Κάμερες ερυθρού", redOwner: "Περιφέρεια Αττικής", aiName: "Κάμερες Τεχνητής Νοημοσύνης", aiShort: "Κάμερες ΤΝ", aiOwner: "Υπουργείο Ψηφιακής Διακυβέρνησης και ΤΝ",
         type: "Σύστημα", owner: "Φορέας", records: "Καταγράφει", redRecords: "Παραβίαση ερυθρού σηματοδότη", aiRecords: "Ερυθρό σηματοδότη, ταχύτητα, λεωφορειολωρίδες, ζώνη ή κράνος, χρήση κινητού", aiPilot: "Πιλοτικό σύστημα",
         aiNote: "Το σημείο προέρχεται από δημοσιεύματα· δεν έχει δημοσιευθεί επίσημος κατάλογος. Η ακριβής θέση της κάμερας στον κόμβο δεν είναι γνωστή.", aiApprox: "Κατά προσέγγιση θέση· η διασταύρωση δεν εντοπίστηκε ακριβώς.",
@@ -236,6 +279,12 @@ const T = {
         dirs: ["Β", "ΒΑ", "Α", "ΝΑ", "Ν", "ΝΔ", "Δ", "ΒΔ"] },
   en: { eyebrow: "Open data · Attica · November 2026", thLight: "Light", thDark: "Dark", thAuto: "Auto", thLabel: "Appearance", title: "Red-light and AI cameras", junctions: "locations", cameras: "red-light cameras", areas: "areas",
         colNode: "Node", colPlace: "Location", colCams: "Cam.", tbArea: "Area", tbAreaV: "Attica", tbCams: "Cameras", tbDate: "Updated", tbDateV: "November 2026", tbScale: "Scale", aiUnit: "AI",
+        fbLink: "Feedback", fbTitleGen: "Feedback on the map", fbTitlePoint: "Report an error", fbMsgGen: "What would you like to tell us?", fbMsgPoint: "Optional: what exactly is wrong?",
+        fbFor: "About", report: "Report an error", isPosition: "The position is wrong", isMissing: "There is no camera here", isDetails: "Wrong details (count, direction)", isOther: "Something else",
+        pickBtn: "Show the correct position on the map", pickAgain: "Change position", pickHint: "Tap the map at the correct position", picked: "Suggested position", cancel: "Cancel", send: "Send",
+        fbPublic: "Your report is published openly on the map&rsquo;s GitHub page, without your name. Do not include personal details.",
+        fbSending: "Sending…", fbThanks: "Thank you! Your report was sent.", fbEmpty: "Write a short message or pick a position.", fbRate: "You have sent several reports; please try again in a few minutes.",
+        fbFail: "The report could not be sent.", fbFallback: "Send it via GitHub", cam: "camera",
         redName: "Red-light violation cameras", redShort: "Red-light cameras", redOwner: "Attica Region", aiName: "Artificial Intelligence cameras", aiShort: "AI cameras", aiOwner: "Ministry of Digital Governance and AI",
         type: "System", owner: "Operator", records: "Records", redRecords: "Red-light violations", aiRecords: "Red light, speed, bus lanes, seat belt or helmet, mobile phone use", aiPilot: "Pilot system",
         aiNote: "This point comes from press reports; no official list has been published. The camera&rsquo;s exact position at the junction is not known.", aiApprox: "Approximate position; the intersection could not be pinpointed.",
@@ -412,6 +461,12 @@ async function init() {
     map.on("mouseleave", id, () => map.getCanvas().style.cursor = "");
   });
   map.on("click", e => {
+    if (FB.picking) {   // the visitor is pointing out where a camera really is
+      FB.suggest = [e.lngLat.lat, e.lngLat.lng];
+      fbClearMarker();
+      FB.marker = new maplibregl.Marker({ color: getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() }).setLngLat(e.lngLat).addTo(map);
+      return fbEndPick(true);
+    }
     if (!map.getLayer("j-dot")) return;
     const hit = map.queryRenderedFeatures(e.point, { layers: ["ai-dot", "cam-dot", "j-dot", "cone-fill"] })[0];
     if (!hit) return;
@@ -472,7 +527,8 @@ function openJunction(j) {
     <tr><td>${t("cams")}</td><td class="mono"><b>${j.cameras}</b></td></tr></table>
     ${j.approx ? `<div class="note">${t("approx")}</div>` : !j.cams.length ? `<div class="note">${t("nocams")}</div>` : ""}
     <div class="links">${j.cams.length ? `<button class="go" data-zoom="${j.id}">${t("zoomCams")}</button>` : ""}
-    <a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${ll}">${t("gmaps")}</a></div></div>`).addTo(map);
+    <a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${ll}">${t("gmaps")}</a></div>
+    <div class="report"><button data-report="j:${j.id}">${t("report")}</button></div></div>`).addTo(map);
 }
 function openAi(a) {
   setActive(a);
@@ -483,7 +539,8 @@ function openAi(a) {
     <tr><td>${t("area")}</td><td>${esc(a.area)}</td></tr>
     <tr><td>${t("records")}</td><td>${t("aiRecords")}</td></tr></table>
     <div class="note">${a.approx ? t("aiApprox") + " " : ""}${t("aiNote")}</div>
-    <div class="links"><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${a.lat},${a.lon}">${t("gmaps")}</a></div></div>`).addTo(map);
+    <div class="links"><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${a.lat},${a.lon}">${t("gmaps")}</a></div>
+    <div class="report"><button data-report="a:${a.id}">${t("report")}</button></div></div>`).addTo(map);
 }
 function openCamera(c) {
   const j = c.j;
@@ -496,10 +553,81 @@ function openCamera(c) {
     <tr><td>${t("node")}</td><td class="mono">${j.node}</td></tr></table>
     <div class="note">${t(c.src === "signal" ? "estSignal" : "estRoad")}</div>
     <div class="links"><button class="go" data-pov="${c.id}">${t("pov")}</button>
-    <a target="_blank" rel="noopener" href="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${c.lat},${c.lon}&heading=${c.hdg}&pitch=-5&fov=80">${t("sv")}</a></div></div>`).addTo(map);
+    <a target="_blank" rel="noopener" href="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${c.lat},${c.lon}&heading=${c.hdg}&pitch=-5&fov=80">${t("sv")}</a></div>
+    <div class="report"><button data-report="c:${c.id}">${t("report")}</button></div></div>`).addTo(map);
   selectCam(c);
 }
+// ---- feedback: general comments and per-point error reports, sent to /api/feedback (which files a GitHub issue)
+const FB = { target: null, suggest: null, picking: false, marker: null };
+function fbTargetFrom(code) {
+  const [k, id] = code.split(":");
+  if (k === "j") { const j = JUNCTIONS.find(x => x.id == id); return { label: `Κ${j.node} · ${j.location}`, ref: `red:${j.node}`, lat: j.lat, lon: j.lon }; }
+  if (k === "a") { const a = AI_SITES.find(x => x.id == id); return { label: `AI · ${a.location}`, ref: `ai:${a.id}`, lat: a.lat, lon: a.lon }; }
+  const c = cams.find(x => x.id == id);
+  return { label: `Κ${c.j.node} · ${c.j.location} · ${t("cam")} ${c.i + 1}/${c.j.cams.length}`, ref: `red:${c.j.node}:${c.i + 1}`, lat: c.lat, lon: c.lon };
+}
+function fbSuggestRow() {
+  $("fbPickBtn").textContent = t(FB.suggest ? "pickAgain" : "pickBtn");
+  $("fbPickVal").textContent = FB.suggest ? `${t("picked")}: ${FB.suggest[0].toFixed(5)}, ${FB.suggest[1].toFixed(5)}` : "";
+}
+function fbClearMarker() { if (FB.marker) { FB.marker.remove(); FB.marker = null; } }
+function openFeedback(target) {
+  FB.target = target || null; FB.suggest = null; fbClearMarker();
+  $("fbTitle").textContent = t(target ? "fbTitlePoint" : "fbTitleGen");
+  $("fbTarget").style.display = target ? "" : "none";
+  if (target) $("fbTarget").innerHTML = `<small>${t("fbFor")}</small>${esc(target.label)}`;
+  $("fbIssue").style.display = $("fbPick").style.display = target ? "" : "none";
+  $("fbIssue").innerHTML = [["position", "isPosition"], ["missing", "isMissing"], ["details", "isDetails"], ["other", "isOther"]].map(([v, k], i) =>
+    `<label class="opt"><input type="radio" name="issue" value="${v}"${i ? "" : " checked"}>${t(k)}</label>`).join("");
+  $("fbMsg").value = ""; $("fbMsg").placeholder = t(target ? "fbMsgPoint" : "fbMsgGen");
+  $("fbHp").value = ""; $("fbStatus").textContent = ""; $("fbSend").disabled = false; $("fbSend").style.display = "";
+  fbSuggestRow();
+  if (popup) popup.remove();
+  $("fb").showModal();
+}
+function fbStartPick() {
+  FB.picking = true; $("fb").close(); document.body.classList.add("picking");
+  map.getCanvas().style.cursor = "crosshair";
+  if (isPhone()) setSheet(false);
+}
+function fbEndPick(reopen) {
+  FB.picking = false; document.body.classList.remove("picking"); map.getCanvas().style.cursor = "";
+  if (reopen) { fbSuggestRow(); $("fb").showModal(); }
+}
+function fbPayload() {
+  const issue = (document.querySelector('#fbIssue input:checked') || {}).value || "other";
+  const p = { type: FB.target ? "point" : "general", message: $("fbMsg").value.trim(), website: $("fbHp").value, lang };
+  if (FB.target) Object.assign(p, { label: FB.target.label, ref: FB.target.ref, lat: FB.target.lat, lon: FB.target.lon, issue });
+  if (FB.suggest) Object.assign(p, { suggestLat: FB.suggest[0], suggestLon: FB.suggest[1] });
+  return p;
+}
+function fbFallbackLink(p) {   // if the server cannot take the report, offer a pre-filled GitHub issue instead
+  const lines = [p.label ? `${p.label} (${p.ref})` : "", p.issue ? `Πρόβλημα: ${p.issue}` : "", p.lat ? `Θέση: ${p.lat}, ${p.lon}` : "",
+    p.suggestLat ? `Προτεινόμενη θέση: ${p.suggestLat.toFixed(6)}, ${p.suggestLon.toFixed(6)}` : "", "", p.message].filter((x, i) => x || i === 4).join("\n");
+  return "https://github.com/acesonic7/traffic-cameras-attica/issues/new?title=" + encodeURIComponent((p.type === "point" ? "[Αναφορά] " + p.label : "[Σχόλιο]").slice(0, 120)) + "&body=" + encodeURIComponent(lines);
+}
+$("fbForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const p = fbPayload(), st = $("fbStatus");
+  if (p.message.length < 5 && !FB.suggest && !(FB.target && p.issue === "missing")) { st.textContent = t("fbEmpty"); return; }
+  $("fbSend").disabled = true; st.textContent = t("fbSending");
+  let code = 0;
+  try { const r = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) }); code = r.status; } catch (err) {}
+  if (code === 200) { st.textContent = t("fbThanks"); $("fbSend").style.display = "none"; fbClearMarker(); return; }
+  $("fbSend").disabled = false;
+  if (code === 429) { st.textContent = t("fbRate"); return; }
+  st.innerHTML = `${t("fbFail")} <a target="_blank" rel="noopener" href="${fbFallbackLink(p)}">${t("fbFallback")}</a>`;
+});
+$("fbBtn").addEventListener("click", () => openFeedback(null));
+$("fbPickBtn").addEventListener("click", fbStartPick);
+$("pickCancel").addEventListener("click", () => fbEndPick(true));
+["fbClose", "fbCancel"].forEach(id => $(id).addEventListener("click", () => { $("fb").close(); fbClearMarker(); }));
+$("fb").addEventListener("click", e => { if (e.target === $("fb")) { $("fb").close(); fbClearMarker(); } });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && FB.picking) fbEndPick(true); });
+
 document.addEventListener("click", e => {
+  const rp = e.target.closest("[data-report]");
+  if (rp) return openFeedback(fbTargetFrom(rp.dataset.report));
   const z = e.target.closest("[data-zoom]"), p = e.target.closest("[data-pov]");
   if (z) { const j = JUNCTIONS.find(x => x.id == z.dataset.zoom); popup.remove(); map.flyTo({ center: [j.lon, j.lat], zoom: 18, pitch: 45, speed: 1.4 }); }
   if (p) { // schematic point of view: sit behind the camera, look along its heading over the 3D buildings

@@ -24,6 +24,16 @@ The app is a static page. Serve the folder and open it:
 
 Only `index.html` and `data.js` are needed to publish it.
 
+## Feedback and error reports
+
+The "Σχόλια" link and the "Αναφορά λάθους" link in each popup post to `api/feedback.js`, a Vercel function
+that files the report as an issue in this repository. Visitors need no account. A report on a specific
+point can carry a corrected position picked on the map.
+
+The function needs one environment variable in Vercel: `GITHUB_TOKEN`, a fine-grained GitHub token limited
+to this repository with "Issues: read and write". Without it the form offers a pre-filled GitHub issue link
+instead.
+
 ## Rebuilding the data
 
     cd tools
